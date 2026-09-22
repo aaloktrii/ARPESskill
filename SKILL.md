@@ -67,6 +67,9 @@ volumes, etc.
   dedicated venv (or explicitly choosing inspect-only).
 - **Warn before high-token steps** (see `reference/token-usage.md`) — inform,
   do not discourage; offer a lighter path when useful.
+- **Fermi map / hv–kz reports:** include the **overview trio** (dispersion +
+  isoenergy near EF or 1/4-from-top + perpendicular / hv dispersion) — see
+  `reference/default-overview-plots.md`. Do not stop at a single mid-scan cut.
 
 ## Package-first (important)
 
@@ -98,8 +101,10 @@ chat). Details: `reference/token-usage.md`.
 1. Identify artifact (file type, shape, **existing** package/project loaders).
 2. Check PyARPES + Python 3.8; if missing/wrong, ask for dedicated venv
    (see Stack policy / `reference/pyarpes-env.md`) before continuing.
-3. Try package load/analysis first (`reference/package-first.md`). If that
-   fails or needs new code — **ask** before writing a custom loader.
+3. Try package load/analysis first (`reference/package-first.md`). For
+   MAESTRO: prefer sibling **`.fits`** + `location='MAESTRO'` before MH1
+   `.h5`; pick main spectrum carefully (`formats-and-axes.md`). If load
+   fails or needs new code — **ask** before a custom loader.
 4. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
 5. Sanity print — shape, ranges, one mid-cut summary.
 6. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
@@ -108,7 +113,7 @@ chat). Details: `reference/token-usage.md`.
 9. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
 10. Plot/report with labeled units; state assumptions.
    Default overviews: `reference/default-overview-plots.md`
-   (cut → full dispersion; Fermi/EPH → mid-scan / nearest 0° deflection).
+   (cut → one full dispersion; **Fermi map → trio**; **hv/kz → trio**).
 11. Before expensive batch work — token note (`reference/token-usage.md`).
 
 If unsure: read the matching `reference/` file; ask the user one sharp question.
@@ -122,7 +127,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/failure-modes.md`
 - `reference/pyarpes-env.md` — Python 3.8 dedicated venv + install
 - `reference/token-usage.md` — when to warn about token cost
-- `reference/default-overview-plots.md` — default preview by scan kind
+- `reference/default-overview-plots.md` — cut / Fermi trio / hv–kz trio
 - `reference/package-first.md` — use package APIs; ask before new code
 
 ## Examples

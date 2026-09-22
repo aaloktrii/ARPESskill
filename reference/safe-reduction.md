@@ -45,8 +45,10 @@ and `reference/formats-and-axes.md` for load/inspect details.
    - **Default overview** (catalog / first look): follow
      `reference/default-overview-plots.md` —
      **cut** → full detector×energy dispersion (not a 1D line);
-     **Fermi / EPH** → dispersion at mid-scan (deflection: nearest **0°** if
-     in range, else mid index); energy vertical.
+     **Fermi map** → **trio** (analyzer dispersion @ mid/0° + isoenergy near EF
+     or 1/4-from-top + perpendicular eV×scan @ mid detector);
+     **hv / kz (EPH)** → **trio** (dispersion @ mid hv + isoenergy vs hv +
+     eV×hv @ mid detector).
 
 7. **Only then fit or convert to k/kz**
    - Fitting: see `reference/edc-mdc-fitting.md`; name lineshape and background.

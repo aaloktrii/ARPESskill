@@ -7,8 +7,8 @@ units, and inspecting loaded data before any reduction or conversion.
 
 | Format | Typical extension | Notes |
 |--------|-------------------|-------|
-| **MAESTRO HDF5** | `.h5`, `.hdf5` | ALS MAESTRO endstation scans; needs **h5py**; load via PyARPES MAESTRO plugins |
-| **FITS** | `.fits`, `.fit` | Older MAESTRO / some beamlines; needs **astropy** (`astropy.io.fits`). **Not** peak-fitting |
+| **MAESTRO HDF5 (MH1)** | `.h5`, `.hdf5` | ALS MAESTRO; needs **h5py**. Stock plugins often fail — if sibling `.fits` exists, prefer FITS first |
+| **FITS** | `.fits`, `.fit` | Preferred MAESTRO path for PyARPES (`location='MAESTRO'`); needs **astropy**. **Not** peak-fitting |
 | **NeXus** | `.nxs`, `.h5` | Community standard; may embed MAESTRO or other beamlines |
 | **Igor** | `.pxp`, `.ibw` | WaveMetrics Igor Pro exports; axis metadata varies by export script |
 | **Generic HDF5** | `.h5`, `.hdf5` | Raw or custom layouts; inspect structure before assuming axis names |
@@ -75,20 +75,41 @@ ALS MAESTRO data is handled by PyARPES endstation plugins:
 - `MAESTROMicroARPESEndstation` — micro-ARPES branch
 - `MAESTRONanoARPESEndstation` — nano-ARPES branch
 
+**File choice (important):** beamline folders often contain both **`.fits`** and
+**MH1 `.h5`**. Prefer **`.fits` + PyARPES** when a FITS file exists for the same
+scan — that is the path the stock MAESTRO plugins support best. Do not jump to a
+custom MH1 HDF5 parser while a sibling `.fits` is unused.
+
 **Load path (preferred):**
 
 ```python
 from arpes.io import load_data
 
-# Project-specific loader if one exists — use that first
-data = load_data("/path/to/maestro_scan.h5")
+# Prefer .fits when present; pass location when known
+data = load_data("/path/to/maestro_scan.fits", location="MAESTRO")
+# Micro/nano variants: location="MAESTRO_MICRO" / "MAESTRO_NANO" if required
 ```
 
-Or register/use the appropriate MAESTRO endstation context per your PyARPES
-project setup. Prefer **`arpes.io.load_data`** and existing project loaders over
-writing ad-hoc HDF5 parsers. If the official plugin fails (e.g. legacy FITS
-plugin on modern **MH1** `.h5`), **ask the user** before writing a custom
-loader — see `reference/package-first.md`.
+Prefer **`arpes.io.load_data`** (and any loader already in the user’s project)
+over writing ad-hoc HDF5 parsers. If only MH1 `.h5` is available and the
+official plugin fails, **ask** before a custom loader — see
+`reference/package-first.md`.
+
+### Spectrum selection after load
+
+Loaded objects may expose several intensity arrays. Prefer the main spectrum
+variable (often named like `spectrum` / `spectrum-*`). **Skip** companion
+arrays whose names suggest counters or monitors (e.g. `*_num_*`, `num_*`).
+If several candidates remain, pick the largest intensity array and **state**
+which name was used. Do not assume `S.spectra[0]` is the science spectrum.
+
+### Axes after load
+
+FITS-loaded MAESTRO data and MH1 HDF5 layouts can disagree on which axis is
+longer or how motors are named. **Trust the loaded `.dims` / `.coords`** —
+do not apply silent `rot90` / axis swaps “to look like MH1.” Label pixels vs
+angles from attrs; if a detector axis is still in **pixels**, say so — do not
+relabel as degrees without conversion metadata.
 
 **Before analysis**, inspect the returned `xr.DataArray` or dataset:
 

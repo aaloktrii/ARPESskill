@@ -20,7 +20,11 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Loader complains about **h5** / **fits** | Install **h5py** (HDF5 `.h5`) and **astropy** (FITS `.fits`) — not peak-fitting |
 | Dump full arrays / whole beamtime into chat | Warn (token note); write scripts + files under `analysis/` instead |
 | Cut overview = 1D line / Fermi overview = edge frame | Use `default-overview-plots.md`: full dispersion; mid-scan / 0° deflection |
+| Fermi or hv/kz report with only one dispersion PNG | Require **trio**: analyzer (or mid-hv) dispersion + isoenergy (EF or 1/4-from-top) + perpendicular / eV×hv cut |
 | Silent custom loader when PyARPES fails | Stop; report error; ask before new code (`package-first.md`) |
+| Only try MH1 `.h5` when sibling `.fits` exists | Prefer `.fits` + `load_data(..., location='MAESTRO')` first (`formats-and-axes.md`) |
+| Blind `S.spectra[0]` / first spectrum var | Skip `*num*`; pick largest `spectrum-*` intensity image |
+| Invent `rot90` / rename axes to match another format | Trust loaded coords; ask if display orientation is wrong |
 | Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
 
 ## Additional guidance

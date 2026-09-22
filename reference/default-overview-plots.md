@@ -1,39 +1,95 @@
 # Default overview plots by scan kind
 
-When the agent (or a catalog script) needs a **default preview image** of an
-ARPES file, use these conventions. Goal: show a useful **dispersion** (image),
-not a 1D line or a random off-center slice.
+When the agent (or a catalog / report script) needs **default preview images**,
+use these conventions. Goal: useful **images**, not a 1D line or a random
+off-center slice.
 
-Always: **energy on the vertical axis** when plotting 2D intensity.
+Always: **energy on the vertical axis** when the plot includes energy
+(dispersion / hv-dispersion). Isoenergy maps: state the energy (and window if
+integrated).
 
 ## Defaults
 
-| Scan kind | How to recognize (typical) | Default overview plot |
-|-----------|----------------------------|------------------------|
-| **Cut / 1D dispersion** | Single frame along analyzer (`scan` size ≈ 1), or log type “Cut” | Full **detector × energy** image (e.g. `pixel` × `eV`). **Not** a line cut through it. |
-| **Fermi map / angle sweep** | Scan motor is deflection / polar / similar (e.g. `Slit_Defl`), many frames | Same **detector × energy** dispersion at the **mid-scan** frame — prefer the index nearest **0°** if that angle is in range; else mid index. State the scan value used. |
-| **Photon-energy (EPH / hv) stack** | Scan motor is `hv` / `mono_eV` / Beamline energy with n>1 | Same: **detector × energy** at **mid hv** frame (mid index). State hv used. |
-| **XY / spatial map** | Scan motors are `x`,`y` (or similar) | Prefer a **spatial intensity map** (integrated over detector+energy or near-EF window stated in meV) **or** dispersion at mid (x,y) — say which. Linked XY‖dispersion viewer = TensorSpec later; for scripts use one clear default and label it. |
+| Scan kind | How to recognize (typical) | Default overview plot(s) |
+|-----------|----------------------------|---------------------------|
+| **Cut / 1D dispersion** | Single frame (`scan` size ≈ 1), or log “Cut” | One image: full **detector × energy**. **Not** a 1D line. |
+| **Fermi map / angle sweep** | Deflection / polar scan (`psi`, `Slit_Defl`, …), n>1; or log “Fermi Map” | **≥3 images** — [Fermi map trio](#fermi-map-trio-required) |
+| **Photon-energy / kz (EPH, hv stack)** | Scan is `hv` / `mono_eV` / beamline energy, n>1 | **≥3 images** — [hv / kz trio](#hv--kz-eph-trio-required) |
+| **XY / spatial map** | Scan motors `x`,`y` | Spatial intensity map (state energy window) **or** dispersion at mid (x,y) — say which. |
+
+**Hard rule for reports:** if the file is a Fermi map or an hv/kz stack, the
+report (or catalog entry) must include **all three** PNGs below — not only the
+analyzer dispersion.
+
+## Fermi map trio (required)
+
+Save **at least three** PNGs and link/embed them in the report:
+
+| # | Name | What to plot | Fixed coords |
+|---|------|--------------|--------------|
+| 1 | **Dispersion (analyzer)** | detector × energy | Mid deflection: nearest **0°** if in range, else mid index. Energy vertical. |
+| 2 | **Isoenergy (FS-like)** | scan × detector | Energy near EF — see [isoenergy energy pick](#isoenergy-energy-pick-shared). State E (±window if used). |
+| 3 | **Perpendicular dispersion** | energy × **scan motor** | Mid detector (`pixel` / `phi`). Energy vertical. Orthogonal to plot #1. |
+
+Example dim names after PyARPES: `(eV, pixel)` @ fixed `psi`; `(psi, pixel)` @
+fixed `eV`; `(eV, psi)` @ fixed mid `pixel`. Discover real names from `.dims`.
+
+## hv / kz (EPH) trio (required)
+
+For photon-energy stacks (relative **kz** along hv — do **not** claim absolute
+kz without stated V₀):
+
+| # | Name | What to plot | Fixed coords |
+|---|------|--------------|--------------|
+| 1 | **Dispersion at mid hv** | detector × energy | Mid `hv` index. Energy vertical. |
+| 2 | **Isoenergy vs hv** | **hv × detector** (or hv × angle) | Energy near EF — same pick rule as Fermi. State E. |
+| 3 | **Dispersion along photon axis** | energy × **hv** | Mid detector. Energy vertical. This is the hv-dependent (kz-like) cut. |
+
+## Isoenergy energy pick (shared)
+
+Prefer near the **Fermi level**. Fallback = **~1/4 of the way down from the top**
+of the energy axis (high-energy end of the spectrogram — usually near EF when
+binding ≤0 is plotted with EF at the top).
+
+```text
+E_min, E_max = energy coord min/max
+if 0 is inside [E_min, E_max]:
+    use E ≈ 0
+    optional: mean over ±25 meV if that window fits; else nearest plane
+else:
+    # ~1/4 from the top (toward deeper binding / lower KE from E_max)
+    E = E_max - 0.25 * (E_max - E_min)
+```
+
+Always state the energy (and integration half-width if any) in the figure title.
+
+## Pseudocode sketch
+
+```python
+# Fermi: scan_dim = psi / Slit_Defl / … ; det = pixel / phi / …
+# 1) spectrum.isel({scan_dim: idx0}).transpose("eV", det)     # analyzer dispersion
+# 2) spectrum.sel(eV=E, method="nearest")  or  .sel(eV=slice(...)).mean("eV")
+# 3) spectrum.isel({det: mid_det}).transpose("eV", scan_dim) # perpendicular
+
+# hv/kz: same pattern with scan_dim = hv
+# 1) mid hv detector×eV
+# 2) isoenergy: hv × detector @ E≈EF or 1/4-from-top
+# 3) mid detector: eV × hv
+```
 
 ## Rules
 
-1. **Never** default a cut overview to a 1D line (mean over energy or mean over pixel) — that hides band dispersion.
-2. **Never** default a Fermi-map overview to an arbitrary edge frame (start of deflection sweep) — use **center / 0°** when possible.
-3. Label the figure title with: file stem, hv if known, and which frame (e.g. `Slit_Defl[60]=0°`).
-4. Downsample huge axes for PNG previews if needed; keep aspect readable.
-5. If the spectrum array is all zeros, say so in the report — empty DAQ, not a plot bug.
-
-## Pseudocode (MH1-style `pixel, eV, scan`)
-
-```python
-# cut (n_scan == 1): plot ds[:, :, 0] as image (transpose so eV vertical)
-# fermi / eph (n_scan > 1):
-#   if scan is deflection and 0 in range: idx = argmin(|scan - 0|)
-#   else: idx = n_scan // 2
-#   plot ds[:, :, idx] as image (eV vertical)
-```
+1. **Never** default a cut overview to a 1D line.
+2. **Never** default Fermi/hv overviews to an arbitrary edge frame — use center / 0° / mid hv.
+3. **Never** ship a Fermi-map or hv/kz **report with only one** dispersion PNG — complete the trio.
+4. Title: stem, hv if known, fixed coords (e.g. `psi=0°`, `E=−0.02±0.025 eV`).
+5. Downsample huge axes for PNG previews if needed.
+6. All-zero arrays → report empty DAQ, not a plot bug.
+7. **Trust loaded coords.** `transpose` so eV is vertical. **No** invented `rot90`.
+8. Discover scan / detector dims from `.dims` / `.coords` — do not hard-code one motor name.
 
 ## Token note
 
-Generating overview PNGs for **many** files is fine on disk; avoid pasting every
-image into chat — see `token-usage.md`.
+Many PNGs on disk are fine; avoid dumping every image into chat —
+see `token-usage.md`. For catalogs: write all trio files under `analysis/`;
+summarize in chat (paths + which E / frame).

@@ -46,14 +46,18 @@ Do **not** start (C) until the user clearly chooses it.
 | DIY angle→k with ad-hoc formulas | Use `convert_to_kspace`; state assumptions |
 | “PyARPES can’t do MH1” → immediately rewrite | Document limitation; ask before new loader |
 
-## MAESTRO note (common trap)
+## MAESTRO decision tree
 
-Legacy PyARPES MAESTRO plugins often expect **FITS**. Modern beamline files may
-be **MH1 HDF5**. If `load_data(..., location=MAESTRO…)` fails on `.h5`:
-
-1. Quote the error.
-2. Check whether the project already has an MH1 helper — **use that**.
-3. If not, **ask** before writing a new MH1 loader. Do not silently invent one.
+1. Look for a **`.fits`** (or `.fit`) for the scan. If present →
+   `load_data(path, location="MAESTRO")` (or micro/nano location if known).
+2. Pick the main spectrum variable carefully (largest `spectrum*`; skip
+   `*_num_*` / monitor-like names) — see `formats-and-axes.md`.
+3. If only **MH1 `.h5`** exists (or FITS load fails): quote the error; try
+   another official `location=` / plugin entry if documented.
+4. Check whether the **user’s project** already has an MH1 / custom helper —
+   **use that** before writing anything new.
+5. If still stuck → **ask** A/B/C above. Do not silently invent an MH1 loader
+   or invent `rot90` / axis renames to “fix” the plot.
 
 ## After user approves custom code
 
