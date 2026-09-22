@@ -72,6 +72,12 @@ volumes, etc.
 - **Echo overview assumptions** in reports (kind from dims; center slices;
   no silent EF recal; anti-claims on Γ / k / EF / kz) — see
   `reference/default-overview-plots.md` § Default overview assumptions.
+- **No k/kz in quick report** — overview trios stay angle-space; convert only
+  in analysis / when user asks (`reference/k-and-kz-conversion.md`).
+- **Γ for k conversion:** provisional heuristic OK if labeled; **user offset
+  always wins**; never claim Γ without method.
+- After k/kz conversion: save `analysis/kspace/*.npz` with required meta;
+  prefer reload from cache when meta still matches.
 
 ## Package-first (important)
 
@@ -110,10 +116,13 @@ chat). Details: `reference/token-usage.md`.
 4. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
 5. Sanity print — shape, ranges, one mid-cut summary.
 6. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
-7. If reporting momentum — convert to k (`reference/k-and-kz-conversion.md`).
-8. If hv-dependent — convert to kz; state V₀.
+7. **Quick report:** stop at angle-space overviews
+   (`default-overview-plots.md`). **Do not** convert to k/kz here.
+8. **Analysis / user-requested momentum:** convert to k / kz
+   (`reference/k-and-kz-conversion.md`) — EF-aligned energy, provisional or
+   user Γ, stated V₀ for kz; save `analysis/kspace/*.npz`; prefer cache reload.
 9. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
-10. Plot/report with labeled units; **list overview assumptions used**.
+10. Plot/report with labeled units; **list overview / conversion assumptions**.
    Default overviews: `reference/default-overview-plots.md`
    (cut → 1 dispersion; Fermi / hv–kz → trio; dims win over log for kind).
 11. Before expensive batch work — token note (`reference/token-usage.md`).
@@ -125,7 +134,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/formats-and-axes.md`
 - `reference/safe-reduction.md`
 - `reference/edc-mdc-fitting.md`
-- `reference/k-and-kz-conversion.md`
+- `reference/k-and-kz-conversion.md` — analysis-mode k/kz + Γ + npz cache
 - `reference/failure-modes.md`
 - `reference/pyarpes-env.md` — Python 3.8 dedicated venv + install
 - `reference/token-usage.md` — when to warn about token cost
@@ -150,7 +159,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 See `reference/` for recipes. Common entry points:
 
 - Load: `arpes.io.load_data` or project loaders
-- k-space: `convert_to_kspace` on cuts / Fermi maps (state geometry)
-- kz: hv/Eph scans with stated inner potential V₀
+- k-space: `convert_to_kspace` + `S.apply_offsets` (analysis mode; state Γ method)
+- kz: hv scans with stated `inner_potential` V₀; cache under `analysis/kspace/`
 - Fit: EDC/MDC with Gaussian, Lorentzian, or Voigt; `broadcast_model` for
   width vs E, width vs k, or E vs k plots

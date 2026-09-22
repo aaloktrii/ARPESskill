@@ -27,6 +27,10 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Trust log “EPH/Cut” over dims for overview kind | **Dims win**; log is comment only (`default-overview-plots.md`) |
 | Report omits overview assumptions | Echo defaults + anti-claims (Γ / k / EF / kz) in report header |
 | Mid pixel / mid ψ claimed as Γ or E=0 as calibrated EF | Anti-claims in `default-overview-plots.md` assumptions section |
+| `convert_to_kspace` during quick-report trios | Quick = angle-space only; k/kz = analysis / user ask (`k-and-kz-conversion.md`) |
+| Invent absolute KE matrix when EF-aligned `eV` + `hv` exist | Use PyARPES convention; WF only for EF calibration if needed |
+| Γ claimed with no method / ignore user offset | Label provisional heuristic; **user offset wins**; persist in npz |
+| Reuse stale k npz after Γ / V₀ / grid change | Recompute and overwrite (or version); meta must match |
 | Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
 
 ## Additional guidance
@@ -36,9 +40,11 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 - **Inner potential:** absolute kz from hv scans requires V₀ in
   `spectrum.attrs["inner_potential"]`. If unknown, report relative kz or ask one
   sharp question.
-- **Γ (gamma point):** the Brillouin-zone center is not assumed at the image center.
-  Identify it by stated method (symmetry, known sample orientation, band structure
-  model, or user-provided reference).
+- **Γ (gamma point):** for **overview** plots, mid-frame ≠ Γ. For **k conversion**,
+  use provisional heuristic labeled as such, or user offset (wins). Never claim
+  Γ without method. See `reference/k-and-kz-conversion.md`.
+- **k/kz:** analysis mode only; cache under `analysis/kspace/*.npz`. Quick
+  report must not convert.
 - **Fits:** every reported fit must name the lineshape and any background model. See
   `reference/edc-mdc-fitting.md`.
 - **Stack policy:** v1 uses PyARPES for analysis. If PyARPES is missing, ask to

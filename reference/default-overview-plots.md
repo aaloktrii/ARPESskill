@@ -26,6 +26,9 @@ make.
 report (or catalog entry) must include **all three** PNGs below — not only the
 analyzer dispersion. Also echo the [default overview assumptions](#default-overview-assumptions).
 
+**Quick report stays in angle space.** Do **not** run `convert_to_kspace` for
+overview trios — k/kz only in analysis mode (`reference/k-and-kz-conversion.md`).
+
 ## Fermi map trio (required)
 
 Save **at least three** PNGs and link/embed them in the report:
