@@ -13,6 +13,9 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Fit without lineshape | Name Gaussian, Lorentzian, or Voigt (+ background if used) |
 | Use TensorSpec APIs in v1 | Defer; use PyARPES for load, reduce, fit, and k/kz |
 | Launch QtTool as only path | Prefer scripted PyARPES + matplotlib; GUIs are optional |
+| PyARPES missing → silent xarray fallback | **STOP**; ask to create Python **3.8** `.venv-arpes` + install; wait |
+| Install PyARPES without asking | Ask first; install only if the user says yes |
+| `pip install arpes` on Python 3.9+ / default env | Refuse; create dedicated 3.8 venv (`reference/pyarpes-env.md`) |
 
 ## Additional guidance
 
@@ -26,8 +29,9 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
   model, or user-provided reference).
 - **Fits:** every reported fit must name the lineshape and any background model. See
   `reference/edc-mdc-fitting.md`.
-- **Stack policy:** v1 uses PyARPES only for analysis. TensorSpec and Qt-based tools are
-  out of scope unless the user explicitly defers to inspect-only or future work.
+- **Stack policy:** v1 uses PyARPES for analysis. If PyARPES is missing, ask to
+  install before any fallback. TensorSpec and Qt-based tools are out of scope
+  unless the user explicitly chooses inspect-only or future work.
 
 When in doubt, read the matching `reference/` file and ask the user one sharp question
 rather than inventing axes, units, or physics assumptions.

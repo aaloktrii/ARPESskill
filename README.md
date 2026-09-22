@@ -42,8 +42,9 @@ under `reference/` into context.
 
 ## Requires (for full analysis)
 
-- Python 3.8+
-- `pip install arpes` (PyARPES) plus its usual scientific stack
+- **Python 3.8.x** only (PyARPES: `>=3.8,<3.9`)
+- Dedicated venv (e.g. `.venv-arpes`) + `pip install arpes` inside it  
+  See skill `reference/pyarpes-env.md` — agent should ask before creating it
 - For load/inspect fallback only: `xarray`, `h5py`
 
 ## Skill layout

@@ -26,9 +26,25 @@ volumes, etc.
 ## Stack policy
 
 1. Prefer **PyARPES** for analysis (fit, k, kz).
-2. If PyARPES missing: **xarray + h5py** for load/inspect only; say so.
-3. Always state which path was used.
-4. TensorSpec / TensorSpec_GUI: out of v1 — if asked, say deferred.
+2. **At session start (and before any analysis):** check whether PyARPES
+   imports **and** that the interpreter is **Python 3.8.x**.
+   (`python -c "import arpes, sys; print(sys.version_info[:2])"`)
+   PyARPES (`arpes` on PyPI) requires `>=3.8,<3.9` — not 3.9+.
+3. **If PyARPES is missing or Python is not 3.8 — STOP and ask**
+   (do not silently fall back; do not `pip install arpes` into the current env):
+   - Explain: PyARPES needs a **dedicated Python 3.8 venv** so it does not
+     break the user’s normal Python / other projects.
+   - Ask: *Create a new `.venv-arpes` with Python 3.8 and install PyARPES there?*
+   - Wait for yes/no.
+   - If **yes**: follow `reference/pyarpes-env.md` (find `python3.8` →
+     `python3.8 -m venv .venv-arpes` → `pip install arpes` in that venv →
+     re-check import). If `python3.8` is missing, ask Homebrew vs conda
+     (or a user-provided 3.8 path) before inventing installs.
+   - If **no**: ask whether to continue with **xarray + h5py load/inspect only**
+     (no fit / k / kz). Only then use that fallback; say so explicitly.
+4. After setup, run analysis with `.venv-arpes/bin/python` (state that path).
+5. Always state which path was used (PyARPES 3.8 venv vs inspect-only).
+6. TensorSpec / TensorSpec_GUI: out of v1 — if asked, say deferred.
 
 ## Hard rules
 
@@ -39,10 +55,18 @@ volumes, etc.
 - Never report fits without naming lineshape (+ background if used).
 - Prefer scripted PyARPES + matplotlib over launching Qt/Bokeh GUIs.
 - Prefer existing project loaders before writing new ones.
+- **Never skip the PyARPES / Python 3.8 venv question** when `import arpes`
+  fails or `sys.version_info` is not `(3, 8)`.
+- **Never `pip install arpes` into Python 3.9+** or into the user’s default env
+  without asking first.
+- **Never silently fall back** to xarray/h5py without the user declining the
+  dedicated venv (or explicitly choosing inspect-only).
 
 ## Error handling
 
-- Missing PyARPES — suggest `pip install arpes`; limit to load/inspect via xarray.
+- Missing PyARPES / wrong Python — **ask to create `.venv-arpes` (Python 3.8)
+  and install** (`reference/pyarpes-env.md`); only after user declines, offer
+  xarray/h5py inspect-only.
 - Ambiguous axes — stop and ask one sharp question.
 - Ambiguous V₀ — ask or mark kz as relative/uncertain.
 - Corrupt/partial file — report readable parts only.
@@ -50,7 +74,8 @@ volumes, etc.
 ## Workflow
 
 1. Identify artifact (file type, shape, existing loaders).
-2. Choose stack (PyARPES vs xarray); state which.
+2. Check PyARPES + Python 3.8; if missing/wrong, ask for dedicated venv
+   (see Stack policy / `reference/pyarpes-env.md`) before continuing.
 3. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
 4. Sanity print — shape, ranges, one mid-cut summary.
 5. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
@@ -68,6 +93,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/edc-mdc-fitting.md`
 - `reference/k-and-kz-conversion.md`
 - `reference/failure-modes.md`
+- `reference/pyarpes-env.md` — Python 3.8 dedicated venv + install
 
 ## Examples
 
@@ -77,9 +103,10 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 
 ## Requires (full analysis)
 
-- Python 3.8+
-- `pip install arpes` (PyARPES) plus its usual scientific stack
-- For load/inspect fallback only: `xarray`, `h5py`
+- **Python 3.8.x only** for PyARPES (`>=3.8,<3.9` on PyPI)
+- Dedicated venv (recommended name: `.venv-arpes`) — see `reference/pyarpes-env.md`
+- `pip install arpes` **inside that venv**
+- For load/inspect fallback only: `xarray`, `h5py` (any modern Python OK)
 
 ## Key PyARPES paths
 

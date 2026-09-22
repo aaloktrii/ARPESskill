@@ -13,8 +13,10 @@ units, and inspecting loaded data before any reduction or conversion.
 | **Generic HDF5** | `.h5`, `.hdf5` | Raw or custom layouts; inspect structure before assuming axis names |
 | **PyARPES `.nc`** | `.nc` | NetCDF exports from PyARPES pipelines; coords usually preserved |
 
-Prefer **PyARPES** loaders when available. Fall back to xarray + h5py only
-for load/inspect (see [xarray fallback](#xarray-fallback) below).
+Prefer **PyARPES** loaders when available. If `import arpes` fails, **stop and
+ask** the user whether to install (`pip install arpes`) before continuing.
+Only after they decline install (or choose inspect-only) may you use
+xarray + h5py for load/inspect (see [xarray fallback](#xarray-fallback) below).
 
 ## Typical dimensions
 
@@ -118,8 +120,11 @@ rename arrays to match expectations.
 
 ## xarray fallback
 
-Use only when PyARPES is unavailable or the file has no PyARPES loader.
-State clearly: *"PyARPES not used; xarray/h5py inspect only."*
+Use **only after** the user declined installing PyARPES (or explicitly asked
+for inspect-only), or when a file has no PyARPES loader after PyARPES is
+already installed. **Do not** silently choose this path when `import arpes`
+fails.
+State clearly: *"PyARPES not used; xarray/h5py inspect only (user declined install or chose inspect-only)."*
 
 ```python
 import h5py
