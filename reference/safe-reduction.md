@@ -44,11 +44,9 @@ and `reference/formats-and-axes.md` for load/inspect details.
    - Title or caption should state binding vs kinetic and key selections.
    - **Default overview** (catalog / first look): follow
      `reference/default-overview-plots.md` —
-     **cut** → full detector×energy dispersion (not a 1D line);
-     **Fermi map** → **trio** (analyzer dispersion @ mid/0° + isoenergy near EF
-     or 1/4-from-top + perpendicular eV×scan @ mid detector);
-     **hv / kz (EPH)** → **trio** (dispersion @ mid hv + isoenergy vs hv +
-     eV×hv @ mid detector).
+     **cut** → full detector×energy (not a 1D line);
+     **Fermi map** → trio (dispersion + isoenergy near EF/¼-top + perp);
+     **hv/kz (EPH)** → trio (mid-hv dispersion + isoenergy vs hv + energy×hv).
 
 7. **Only then fit or convert to k/kz**
    - Fitting: see `reference/edc-mdc-fitting.md`; name lineshape and background.

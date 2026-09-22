@@ -67,9 +67,11 @@ volumes, etc.
   dedicated venv (or explicitly choosing inspect-only).
 - **Warn before high-token steps** (see `reference/token-usage.md`) — inform,
   do not discourage; offer a lighter path when useful.
-- **Fermi map / hv–kz reports:** include the **overview trio** (dispersion +
-  isoenergy near EF or 1/4-from-top + perpendicular / hv dispersion) — see
-  `reference/default-overview-plots.md`. Do not stop at a single mid-scan cut.
+- **Fermi map / hv–kz reports:** include the **overview trio** — see
+  `reference/default-overview-plots.md`.
+- **Echo overview assumptions** in reports (kind from dims; center slices;
+  no silent EF recal; anti-claims on Γ / k / EF / kz) — see
+  `reference/default-overview-plots.md` § Default overview assumptions.
 
 ## Package-first (important)
 
@@ -111,9 +113,9 @@ chat). Details: `reference/token-usage.md`.
 7. If reporting momentum — convert to k (`reference/k-and-kz-conversion.md`).
 8. If hv-dependent — convert to kz; state V₀.
 9. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
-10. Plot/report with labeled units; state assumptions.
+10. Plot/report with labeled units; **list overview assumptions used**.
    Default overviews: `reference/default-overview-plots.md`
-   (cut → one full dispersion; **Fermi map → trio**; **hv/kz → trio**).
+   (cut → 1 dispersion; Fermi / hv–kz → trio; dims win over log for kind).
 11. Before expensive batch work — token note (`reference/token-usage.md`).
 
 If unsure: read the matching `reference/` file; ask the user one sharp question.
@@ -127,7 +129,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/failure-modes.md`
 - `reference/pyarpes-env.md` — Python 3.8 dedicated venv + install
 - `reference/token-usage.md` — when to warn about token cost
-- `reference/default-overview-plots.md` — cut / Fermi trio / hv–kz trio
+- `reference/default-overview-plots.md` — cut / Fermi trio / hv–kz trio + assumptions
 - `reference/package-first.md` — use package APIs; ask before new code
 
 ## Examples

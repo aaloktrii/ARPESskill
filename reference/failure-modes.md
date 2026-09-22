@@ -19,12 +19,14 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Bare `pip install arpes` hangs on PyQt / qmake | Use conda `pyqt=5` first, then `pip install arpes --no-deps` |
 | Loader complains about **h5** / **fits** | Install **h5py** (HDF5 `.h5`) and **astropy** (FITS `.fits`) — not peak-fitting |
 | Dump full arrays / whole beamtime into chat | Warn (token note); write scripts + files under `analysis/` instead |
-| Cut overview = 1D line / Fermi overview = edge frame | Use `default-overview-plots.md`: full dispersion; mid-scan / 0° deflection |
-| Fermi or hv/kz report with only one dispersion PNG | Require **trio**: analyzer (or mid-hv) dispersion + isoenergy (EF or 1/4-from-top) + perpendicular / eV×hv cut |
+| Cut overview = 1D line / Fermi or hv = single edge frame | Use `default-overview-plots.md`: cut=1; Fermi trio; hv/kz trio (isoenergy + photon-axis dispersion) |
 | Silent custom loader when PyARPES fails | Stop; report error; ask before new code (`package-first.md`) |
 | Only try MH1 `.h5` when sibling `.fits` exists | Prefer `.fits` + `load_data(..., location='MAESTRO')` first (`formats-and-axes.md`) |
 | Blind `S.spectra[0]` / first spectrum var | Skip `*num*`; pick largest `spectrum-*` intensity image |
 | Invent `rot90` / rename axes to match another format | Trust loaded coords; ask if display orientation is wrong |
+| Trust log “EPH/Cut” over dims for overview kind | **Dims win**; log is comment only (`default-overview-plots.md`) |
+| Report omits overview assumptions | Echo defaults + anti-claims (Γ / k / EF / kz) in report header |
+| Mid pixel / mid ψ claimed as Γ or E=0 as calibrated EF | Anti-claims in `default-overview-plots.md` assumptions section |
 | Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
 
 ## Additional guidance
