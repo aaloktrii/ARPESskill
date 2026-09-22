@@ -7,16 +7,25 @@ units, and inspecting loaded data before any reduction or conversion.
 
 | Format | Typical extension | Notes |
 |--------|-------------------|-------|
-| **MAESTRO HDF5** | `.h5`, `.hdf5` | ALS MAESTRO endstation scans; load via PyARPES endstation plugins |
+| **MAESTRO HDF5** | `.h5`, `.hdf5` | ALS MAESTRO endstation scans; needs **h5py**; load via PyARPES MAESTRO plugins |
+| **FITS** | `.fits`, `.fit` | Older MAESTRO / some beamlines; needs **astropy** (`astropy.io.fits`). **Not** peak-fitting |
 | **NeXus** | `.nxs`, `.h5` | Community standard; may embed MAESTRO or other beamlines |
 | **Igor** | `.pxp`, `.ibw` | WaveMetrics Igor Pro exports; axis metadata varies by export script |
 | **Generic HDF5** | `.h5`, `.hdf5` | Raw or custom layouts; inspect structure before assuming axis names |
 | **PyARPES `.nc`** | `.nc` | NetCDF exports from PyARPES pipelines; coords usually preserved |
 
+**Do not confuse:** “fits” in loader messages = **FITS file format**. Peak fitting
+(Gaussian / Lorentzian / Voigt) is separate — see `edc-mdc-fitting.md`.
+
 Prefer **PyARPES** loaders when available. If `import arpes` fails, **stop and
-ask** the user whether to install (`pip install arpes`) before continuing.
-Only after they decline install (or choose inspect-only) may you use
-xarray + h5py for load/inspect (see [xarray fallback](#xarray-fallback) below).
+ask** the user whether to create a Python 3.8 env and install (see
+`pyarpes-env.md`) before continuing. Only after they decline install (or choose
+inspect-only) may you use xarray + h5py for load/inspect (see
+[xarray fallback](#xarray-fallback) below).
+
+If PyARPES imports but loading `.h5` / `.fits` fails with missing-module errors,
+install **`h5py`** (HDF5) and/or **`astropy`** (FITS) into the same env, then
+retry. Pass `location=` for MAESTRO when known (e.g. micro/nano endstation).
 
 ## Typical dimensions
 
@@ -77,7 +86,9 @@ data = load_data("/path/to/maestro_scan.h5")
 
 Or register/use the appropriate MAESTRO endstation context per your PyARPES
 project setup. Prefer **`arpes.io.load_data`** and existing project loaders over
-writing ad-hoc HDF5 parsers.
+writing ad-hoc HDF5 parsers. If the official plugin fails (e.g. legacy FITS
+plugin on modern **MH1** `.h5`), **ask the user** before writing a custom
+loader — see `reference/package-first.md`.
 
 **Before analysis**, inspect the returned `xr.DataArray` or dataset:
 

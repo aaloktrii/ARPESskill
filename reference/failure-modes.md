@@ -16,6 +16,12 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | PyARPES missing → silent xarray fallback | **STOP**; ask to create Python **3.8** `.venv-arpes` + install; wait |
 | Install PyARPES without asking | Ask first; install only if the user says yes |
 | `pip install arpes` on Python 3.9+ / default env | Refuse; create dedicated 3.8 venv (`reference/pyarpes-env.md`) |
+| Bare `pip install arpes` hangs on PyQt / qmake | Use conda `pyqt=5` first, then `pip install arpes --no-deps` |
+| Loader complains about **h5** / **fits** | Install **h5py** (HDF5 `.h5`) and **astropy** (FITS `.fits`) — not peak-fitting |
+| Dump full arrays / whole beamtime into chat | Warn (token note); write scripts + files under `analysis/` instead |
+| Cut overview = 1D line / Fermi overview = edge frame | Use `default-overview-plots.md`: full dispersion; mid-scan / 0° deflection |
+| Silent custom loader when PyARPES fails | Stop; report error; ask before new code (`package-first.md`) |
+| Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
 
 ## Additional guidance
 

@@ -42,6 +42,11 @@ and `reference/formats-and-axes.md` for load/inspect details.
 6. **Plot with axis labels + units**
    - Label axes with physical names and units (eV, °, Å⁻¹ as appropriate).
    - Title or caption should state binding vs kinetic and key selections.
+   - **Default overview** (catalog / first look): follow
+     `reference/default-overview-plots.md` —
+     **cut** → full detector×energy dispersion (not a 1D line);
+     **Fermi / EPH** → dispersion at mid-scan (deflection: nearest **0°** if
+     in range, else mid index); energy vertical.
 
 7. **Only then fit or convert to k/kz**
    - Fitting: see `reference/edc-mdc-fitting.md`; name lineshape and background.

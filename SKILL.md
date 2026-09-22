@@ -53,36 +53,63 @@ volumes, etc.
 - Never hv→kz without stating inner potential V₀ (or that it is unknown).
 - Never claim Γ found without method (manual / fit / model).
 - Never report fits without naming lineshape (+ background if used).
-- Prefer scripted PyARPES + matplotlib over launching Qt/Bokeh GUIs.
-- Prefer existing project loaders before writing new ones.
+- Prefer scripted **calls to PyARPES** (+ matplotlib) over launching Qt/Bokeh GUIs.
+- **Package-first:** use PyARPES / existing project APIs; do **not** write a new
+  loader or reimplement package features without asking (see
+  `reference/package-first.md`).
+- Prefer existing project loaders before writing new ones — and **ask** before
+  any new loader.
 - **Never skip the PyARPES / Python 3.8 venv question** when `import arpes`
   fails or `sys.version_info` is not `(3, 8)`.
 - **Never `pip install arpes` into Python 3.9+** or into the user’s default env
   without asking first.
 - **Never silently fall back** to xarray/h5py without the user declining the
   dedicated venv (or explicitly choosing inspect-only).
+- **Warn before high-token steps** (see `reference/token-usage.md`) — inform,
+  do not discourage; offer a lighter path when useful.
+
+## Package-first (important)
+
+Default = **call code that already exists** (PyARPES or the project).
+If a package path fails or is missing a feature, **tell the user** and ask
+before writing a new custom loader/implementation. Details:
+`reference/package-first.md`.
+
+## Token awareness
+
+Before steps that will burn a lot of context (full-folder catalogs, pasting
+arrays, broadcast fits over whole maps, many figures in-chat), give a short
+**Token note** and offer a cheaper option (script → `analysis/`, summarize in
+chat). Details: `reference/token-usage.md`.
 
 ## Error handling
 
 - Missing PyARPES / wrong Python — **ask to create `.venv-arpes` (Python 3.8)
   and install** (`reference/pyarpes-env.md`); only after user declines, offer
   xarray/h5py inspect-only.
+- Package load fails / feature missing — quote error; ask before custom code
+  (`reference/package-first.md`).
 - Ambiguous axes — stop and ask one sharp question.
 - Ambiguous V₀ — ask or mark kz as relative/uncertain.
 - Corrupt/partial file — report readable parts only.
 
 ## Workflow
 
-1. Identify artifact (file type, shape, existing loaders).
+1. Identify artifact (file type, shape, **existing** package/project loaders).
 2. Check PyARPES + Python 3.8; if missing/wrong, ask for dedicated venv
    (see Stack policy / `reference/pyarpes-env.md`) before continuing.
-3. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
-4. Sanity print — shape, ranges, one mid-cut summary.
-5. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
-6. If reporting momentum — convert to k (`reference/k-and-kz-conversion.md`).
-7. If hv-dependent — convert to kz; state V₀.
-8. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
-9. Plot/report with labeled units; state assumptions.
+3. Try package load/analysis first (`reference/package-first.md`). If that
+   fails or needs new code — **ask** before writing a custom loader.
+4. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
+5. Sanity print — shape, ranges, one mid-cut summary.
+6. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
+7. If reporting momentum — convert to k (`reference/k-and-kz-conversion.md`).
+8. If hv-dependent — convert to kz; state V₀.
+9. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
+10. Plot/report with labeled units; state assumptions.
+   Default overviews: `reference/default-overview-plots.md`
+   (cut → full dispersion; Fermi/EPH → mid-scan / nearest 0° deflection).
+11. Before expensive batch work — token note (`reference/token-usage.md`).
 
 If unsure: read the matching `reference/` file; ask the user one sharp question.
 
@@ -94,6 +121,9 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/k-and-kz-conversion.md`
 - `reference/failure-modes.md`
 - `reference/pyarpes-env.md` — Python 3.8 dedicated venv + install
+- `reference/token-usage.md` — when to warn about token cost
+- `reference/default-overview-plots.md` — default preview by scan kind
+- `reference/package-first.md` — use package APIs; ask before new code
 
 ## Examples
 

@@ -1,0 +1,63 @@
+# Package-first policy (do not invent loaders)
+
+This skill drives **existing package APIs** (especially **PyARPES**). It is not
+a license to rewrite ARPES infrastructure in the analysis folder.
+
+## Order of preference
+
+1. **PyARPES** public API — `arpes.io.load_data`, endstation plugins,
+   `convert_to_kspace`, `broadcast_model` / fit models, etc.
+2. **Already in the user’s project** — import and call existing loaders/scripts
+   (do not duplicate them).
+3. **Thin glue only** — short scripts that *call* those APIs and save plots under
+   `analysis/` (orchestration, not a new library).
+4. **New custom loader / reimplementation** — **only after asking the user**.
+
+## Before writing new code
+
+**STOP and ask** if you are about to:
+
+- Write a new HDF5/FITS/NeXus loader instead of `arpes.io.load_data` / a plugin
+- Reimplement k-conversion, EDC/MDC extract, or peak fitting by hand
+- Copy large chunks of package logic into `analysis/`
+- Bypass PyARPES because the first plugin attempt failed
+
+Ask in this shape:
+
+> PyARPES / package path failed or is incomplete: [exact error / missing
+> feature]. I can (A) retry with another official entry point (`location=…`,
+> different plugin), (B) use a loader **already in your project**, or (C) write
+> a **new** custom loader under `analysis/` (not ideal). Which do you want?
+
+Do **not** start (C) until the user clearly chooses it.
+
+## Allowed without asking
+
+- Small analysis scripts that **import** package functions and write figures/reports
+- One-off `sel` / `isel` / plot after a successful package load
+- Sanity prints of `.dims` / `.coords` / `.attrs`
+
+## Not allowed silently
+
+| Bad habit | Correct |
+|-----------|---------|
+| Custom `maestro_*.py` loader without asking | Report plugin failure; ask A/B/C |
+| Hand-rolled Voigt fit when `arpes.fits` exists | Use package fit models |
+| DIY angle→k with ad-hoc formulas | Use `convert_to_kspace`; state assumptions |
+| “PyARPES can’t do MH1” → immediately rewrite | Document limitation; ask before new loader |
+
+## MAESTRO note (common trap)
+
+Legacy PyARPES MAESTRO plugins often expect **FITS**. Modern beamline files may
+be **MH1 HDF5**. If `load_data(..., location=MAESTRO…)` fails on `.h5`:
+
+1. Quote the error.
+2. Check whether the project already has an MH1 helper — **use that**.
+3. If not, **ask** before writing a new MH1 loader. Do not silently invent one.
+
+## After user approves custom code
+
+- Keep it **minimal**, under the user’s analysis folder.
+- Document that it is a **workaround**, not a replacement for the skill’s
+  package path.
+- Still never invent axis names/units — read from file metadata.
