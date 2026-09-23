@@ -15,7 +15,7 @@ units, and inspecting loaded data before any reduction or conversion.
 | **PyARPES `.nc`** | `.nc` | NetCDF exports from PyARPES pipelines; coords usually preserved |
 
 **Do not confuse:** “fits” in loader messages = **FITS file format**. Peak fitting
-(Gaussian / Lorentzian / Voigt) is separate — see `edc-mdc-fitting.md`.
+(Gaussian / Lorentzian / Voigt) is separate — see `edc-mdc-fitting.md` (core + EDC/MDC).
 
 Prefer **PyARPES** loaders when available. If `import arpes` fails, **stop and
 ask** the user whether to create a Python 3.8 env and install (see

@@ -53,6 +53,8 @@ volumes, etc.
 - Never hv→kz without stating inner potential V₀ (or that it is unknown).
 - Never claim Γ found without method (manual / fit / model).
 - Never report fits without naming lineshape (+ background if used).
+- **Peak fitting:** PyARPES models only (core → then EDC/MDC); ask before any
+  new lineshape (`reference/edc-mdc-fitting.md`).
 - Prefer scripted **calls to PyARPES** (+ matplotlib) over launching Qt/Bokeh GUIs.
 - **Package-first:** use PyARPES / existing project APIs; do **not** write a new
   loader or reimplement package features without asking (see
@@ -145,7 +147,8 @@ chat). Details: `reference/token-usage.md`.
    report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); Γ per
    cut vs Fermi rules; stated V₀ for kz; save `analysis/kspace/*.npz`; link
    `product_paths` on the manifest row.
-10. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
+10. If line / core analysis — fit (`reference/edc-mdc-fitting.md`: **core first**,
+   then EDC/MDC; package models only).
 11. Plot/report with labeled units; **list overview / conversion assumptions**.
 12. Before expensive batch work — token note (`reference/token-usage.md`).
 
@@ -155,7 +158,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 
 - `reference/formats-and-axes.md`
 - `reference/safe-reduction.md`
-- `reference/edc-mdc-fitting.md`
+- `reference/edc-mdc-fitting.md` — peak fitting: core, then EDC/MDC (PyARPES only)
 - `reference/k-and-kz-conversion.md` — analysis-mode k/kz + Γ + npz cache
 - `reference/beamline-geometry.md` — MAESTRO / ALBA LOREA 55° defaults; SLS soft X-ray postponed
 - `reference/failure-modes.md`
@@ -185,5 +188,5 @@ See `reference/` for recipes. Common entry points:
 - Load: `arpes.io.load_data` or project loaders
 - k-space: `convert_to_kspace` + `S.apply_offsets` (analysis mode; state Γ method)
 - kz: hv scans with stated `inner_potential` V₀; cache under `analysis/kspace/`
-- Fit: EDC/MDC with Gaussian, Lorentzian, or Voigt; `broadcast_model` for
-  width vs E, width vs k, or E vs k plots
+- Fit: core (Shirley + multi-peak) then EDC/MDC; `broadcast_model` for maps /
+  dispersion parameter plots

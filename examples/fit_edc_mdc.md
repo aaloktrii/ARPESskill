@@ -1,91 +1,74 @@
-# Example: Fit EDC and MDC with PyARPES
+# Example: Core-level fit, then EDC/MDC (PyARPES)
 
-**Goal:** Extract one EDC from tutorial or user data, fit with a named lineshape,
-then sketch a broadcast fit on a 2D cut to derive center vs momentum and width vs
-energy. Follow `reference/safe-reduction.md` steps 1–5 and
-`reference/edc-mdc-fitting.md`.
+**Goal:** Package-only fitting. Start with **core**, then valence **EDC/MDC**.
+Follow `reference/edc-mdc-fitting.md` and `reference/package-first.md`.
 
-## 1. Select data and extract one EDC
+## 0. Mode
+
+Analysis / user-requested fitting — not quick-report overviews alone.
+If the file is **core-as-2D**, angle-integrate before fitting.
+
+## 1. Core level (first)
+
+```python
+from arpes.fits.fit_models import GaussianModel, AffineBackgroundModel
+from arpes.analysis.shirley import remove_shirley_background
+
+# core_2d: detector × eV (or already 1D)
+# det = [d for d in core_2d.dims if d != "eV"][0]
+# core_edc = core_2d.mean(det)  # angle-integrated
+
+# Tutorial stand-in: use a 1D EDC-like curve from user data when available
+# core_edc = ...
+
+roi = core_edc.sel(eV=slice(e_lo, e_hi))  # MUST state window
+clean = remove_shirley_background(roi)  # state if used
+
+model = (
+    AffineBackgroundModel()
+    + GaussianModel(prefix="a_")
+    + GaussianModel(prefix="b_")
+)
+result = model.guess_fit(
+    clean - clean.min(),
+    params={
+        "a_center": {"value": c1},  # user/prior guess — do not invent element IDs
+        "b_center": {"value": c2},
+    },
+)
+print(result.fit_report())
+# Report: Shirley on/off, lineshapes, centers, widths, amplitudes
+```
+
+Optional nano-XPS map broadcast: see PyARPES XPS notebook +
+`broadcast_model(..., ["x","y"], params=result_to_hints(result))` — token note
+if many pixels. **Ask** before inventing Doniach–Šunjić if not in package.
+
+## 2. Valence EDC (single)
 
 ```python
 from arpes.io import example_data
+from arpes.fits.fit_models import LorentzianModel
 
-cut = example_data.cut.spectrum  # or user-loaded DataArray
-
-# State axes + units before extraction
+cut = example_data.cut.spectrum
 print(cut.dims, list(cut.coords))
 
-# EDC: fixed angle/momentum — use actual coord name from .coords
-# Example: select mid-index on the non-energy dim
 non_eV = [d for d in cut.dims if d != "eV"][0]
 edc = cut.isel({non_eV: cut.sizes[non_eV] // 2})
-print(f"EDC at {non_eV}={float(edc.coords[non_eV]):.4g}")
-```
-
-## 2. Single-curve fit (name the lineshape)
-
-Pick **Gaussian**, **Lorentzian**, or **Voigt** for the physics question. Always
-state the lineshape name in the report — not just "peak fit".
-
-```python
-from arpes.fits.fit_models import LorentzianModel  # or VoigtModel, GaussianModel
-
 result = LorentzianModel().guess_fit(edc)
 print(result.fit_report())
-# Report: lineshape name, center (eV), width (σ/γ/FWHM — state which), amplitude
 ```
 
-**Voigt alternative:**
-
-```python
-from arpes.fits.fit_models import VoigtModel
-
-result = VoigtModel().guess_fit(edc)
-print(result.fit_report())
-# Agent reply must name "Voigt" and report center, width, amplitude
-```
-
-## 3. Broadcast fit on a 2D cut
-
-Apply the same lineshape along one axis to track peak position and width across
-the cut. State which mode (MDC vs EDC) you used.
+## 3. Broadcast MDC / EDC on a cut
 
 ```python
 from arpes.fits.utilities import broadcast_model
 from arpes.fits.fit_models import LorentzianModel
 
-# Fit MDCs vs energy — use actual coord name from .coords
+# Example: MDCs vs energy — use actual dim names
 fit_results = broadcast_model(LorentzianModel, cut, "eV")
-
-# Extract fitted parameters (structure varies by PyARPES version; inspect .values)
-# fit_results → peak center vs k or E; width vs k or E
+# Derive center vs k and width vs E; save under analysis/
 ```
 
-**Typical derived plots (describe or show at least one):**
-
-| Plot | X axis | Y axis | Mode |
-|------|--------|--------|------|
-| Center vs momentum | k (Å⁻¹) | E (eV) | MDC broadcast along `"eV"` → dispersion E(k) |
-| Width vs energy | E (eV) | width (eV) | EDC broadcast along k at each energy slice |
-
-```python
-import matplotlib.pyplot as plt
-
-# Sketch: extract centers and widths from fit_results, then plot
-# centers = ...  # from fit_results
-# widths = ...
-# plt.plot(k_axis, centers); plt.xlabel("k (Å⁻¹)"); plt.ylabel("E (eV)")
-# plt.figure(); plt.plot(e_axis, widths); plt.xlabel("E (eV)"); plt.ylabel("width (eV)")
-```
-
-Label axes with units. State lineshape (Lorentzian / Voigt / Gaussian) and whether
-width is σ, γ, or FWHM.
-
-## Agent checklist
-
-1. EDC or MDC extracted with stated window (`safe-reduction.md` step 5).
-2. **Lineshape named** (Gaussian, Lorentzian, or Voigt) in every reply.
-3. Background stated if present.
-4. Center, width (with σ/γ/FWHM clarity), amplitude reported.
-5. For broadcast: mode stated (MDC vs EDC); derived plot(s) described or shown.
-6. No lifetime / Γ claims without explicit assumptions.
+**Agent narrative:** core first when relevant; always name lineshape + background;
+no freestyle fit engines; save params/figures under `analysis/`.

@@ -19,6 +19,8 @@ a license to rewrite ARPES infrastructure in the analysis folder.
 
 - Write a new HDF5/FITS/NeXus loader instead of `arpes.io.load_data` / a plugin
 - Reimplement k-conversion, EDC/MDC extract, or peak fitting by hand
+- Invent **Doniach–Šunjić** or other XPS lineshapes not in installed
+  `arpes.fits.fit_models` (check first; then ask)
 - Invent a **Fermi-surface / Γ center finder** (centroid, argmax, custom symmetry)
   instead of `S.apply_offsets`, user input, `pocket_parameters`, or `ktool`
 - Invent **photon-momentum** or beamline **incidence** formulas / angles not in

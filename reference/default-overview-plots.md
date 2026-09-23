@@ -75,7 +75,8 @@ Label kind `core_level_2d` (suspected) in the catalog/report.
 ### Analysis defaults
 
 - Prefer angle-integrated line for core peak fitting; **ask** before inventing
-  an XPS lineshape stack if package models are unclear.
+  an XPS lineshape. Package path: Shirley + Gaussian/Voigt composites —
+  `reference/edc-mdc-fitting.md` § Core-level fitting.
 - **Do not** default to valence EF→k / band-dispersion workflow.
 
 ## Fermi map trio (required)

@@ -11,6 +11,8 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Invent MAESTRO motor names | Read coords/attrs from file — never guess `phi`, `theta`, etc. |
 | "Γ is at image center" | No — state method to find Γ (manual pick, fit, symmetry, model) |
 | Fit without lineshape | Name Gaussian, Lorentzian, or Voigt (+ background if used) |
+| Core fit without ROI / invent Doniach–Šunjić | Shirley + package peaks; ask if exotic model missing (`edc-mdc-fitting.md`) |
+| Treat core-as-2D as valence EDC/MDC broadcast | Angle-integrate; core section first; no default k-convert |
 | Use TensorSpec APIs in v1 | Defer; use PyARPES for load, reduce, fit, and k/kz |
 | Launch QtTool as only path | Prefer scripted PyARPES + matplotlib; GUIs are optional |
 | PyARPES missing → silent xarray fallback | **STOP**; ask to create Python **3.8** `.venv-arpes` + install; wait |

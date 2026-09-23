@@ -55,7 +55,8 @@ and `reference/formats-and-axes.md` for load/inspect details.
      and do not treat as valence dispersion for k conversion by default.
 
 7. **Only then fit or convert to k/kz**
-   - Fitting: see `reference/edc-mdc-fitting.md`; name lineshape and background.
+   - Fitting: see `reference/edc-mdc-fitting.md` (**core** then EDC/MDC);
+     name lineshape and background; PyARPES only.
    - k conversion: see `reference/k-and-kz-conversion.md`; state geometry.
    - kz from hv: state inner potential V₀ (or mark as unknown/relative).
 
