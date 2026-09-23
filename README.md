@@ -6,8 +6,9 @@ General LLM agent skill for ARPES analysis via **PyARPES** (v1).
 
 Teaches agents to load ARPES data, lock axes/units, extract EDC/MDC,
 fit peaks (Gaussian / Lorentzian / Voigt), convert cuts/Fermi maps to
-k-space, and convert photon-energy scans to kz — without inventing
-coordinates or physics assumptions.
+k-space, convert photon-energy scans to kz, and (when asked) run near-EF
+cut analysis for gap/pseudogap (metal EF, resolution-broadened FD divide,
+symmetrize) — without inventing coordinates or physics assumptions.
 
 ## What this is not (v1)
 

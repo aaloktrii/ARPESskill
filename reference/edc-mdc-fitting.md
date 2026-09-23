@@ -30,7 +30,9 @@ manifest recall (`folder-manifest.md`).
 | Broadcast | `arpes.fits.utilities.broadcast_model` | Same model along 1+ dims |
 
 **Fermi edge** (not a core/valence peak): `AffineBroadenedFD` / step models — see
-k-conversion EF finder; do not use as a core peak model.
+k-conversion EF finder; do not use as a core peak model. For **metal-referenced
+near-EF / gap / pseudogap** on cuts (FD divide, symmetrize) see
+`near-ef-gap.md` — user-asked only.
 
 **Doniach–Šunjić / exotic XPS shapes:** check whether they exist in the installed
 `arpes.fits.fit_models` before claiming. If missing → **ask** before writing a
@@ -116,7 +118,7 @@ After safe-reduction step 5 (extract EDC/MDC with stated window).
 
 | Curve | Fixed axis | Best for |
 |-------|------------|----------|
-| **EDC** | fixed k (or angle) | Energy distribution, gaps, binding shifts |
+| **EDC** | fixed k (or angle) | Energy distribution, gaps / pseudogap (`near-ef-gap.md`), binding shifts |
 | **MDC** | fixed E | Dispersion E(k), velocity, FS crossings |
 
 - Prefer **MDC** for band tracking / E(k).  

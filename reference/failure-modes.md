@@ -50,6 +50,10 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Ignore stale manifest after files change | Refresh rows when mtime/hash differs |
 | Treat log “Cut” as kind without dims/heuristics | Dims + core-as-2D rules; log → `log_comment` only |
 | Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
+| Near-EF FD divide without resolution | Always convolve FD with resolution (`near-ef-gap.md`) |
+| Symmetrize every EDC by default | Only for gap/pseudogap (or explicit ask); state p–h symmetry |
+| DIY symmetrize / invent gap Δ fitter | `arpes.analysis.gap.symmetrize`; ask before custom Δ |
+| Metal EF / gap workflow in quick report | User-asked cut analysis only (`near-ef-gap.md`) |
 
 ## Additional guidance
 

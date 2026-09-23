@@ -3,10 +3,11 @@ name: arpes
 description: >
   Load and analyze ARPES photoemission data with correct axes, units,
   EDC/MDC extraction, Gaussian/Lorentzian/Voigt peak fitting, k-space
-  conversion, and photon-energy to kz conversion via PyARPES. Use when
-  working with ARPES spectra, Fermi surfaces, EDC, MDC, MAESTRO or
-  NeXus/HDF5 ARPES files, angle-to-momentum conversion, hv/kz scans,
-  or PyARPES.
+  conversion, photon-energy to kz conversion, and near-EF gap/pseudogap
+  analysis (metal EF, resolution-broadened FD divide, symmetrize) via
+  PyARPES. Use when working with ARPES spectra, Fermi surfaces, EDC, MDC,
+  MAESTRO or NeXus/HDF5 ARPES files, angle-to-momentum conversion, hv/kz
+  scans, pseudogap, or PyARPES.
 ---
 
 # ARPES
@@ -57,6 +58,11 @@ volumes, etc.
   new lineshape (`reference/edc-mdc-fitting.md`). After valence broadcast: default
   E vs k / width plots; linear or parabolic on E(k) → report vF / m* when asked
   by that workflow (prefer k-space).
+- **Near-EF / gap / pseudogap (cuts, user-asked only):** metal-ref EF → shift
+  sample; optional divide by **resolution-broadened** FD (state T + resolution);
+  if gap/pseudogap → symmetrize EDC about E=0 (`arpes.analysis.gap.symmetrize`);
+  state p–h symmetry; ask before inventing a Δ fitter
+  (`reference/near-ef-gap.md`).
 - Prefer scripted **calls to PyARPES** (+ matplotlib) over launching Qt/Bokeh GUIs.
 - **Package-first:** use PyARPES / existing project APIs; do **not** write a new
   loader or reimplement package features without asking (see
@@ -151,8 +157,11 @@ chat). Details: `reference/token-usage.md`.
    `product_paths` on the manifest row.
 10. If line / core analysis — fit (`reference/edc-mdc-fitting.md`: **core first**,
    then EDC/MDC; package models only).
-11. Plot/report with labeled units; **list overview / conversion assumptions**.
-12. Before expensive batch work — token note (`reference/token-usage.md`).
+11. If user asks near-EF / metal EF / FD / **gap** / **pseudogap** on a cut —
+    `reference/near-ef-gap.md` (metal fit → shift; optional resolution-broadened
+    FD divide; symmetrize when gap/pseudogap).
+12. Plot/report with labeled units; **list overview / conversion assumptions**.
+13. Before expensive batch work — token note (`reference/token-usage.md`).
 
 If unsure: read the matching `reference/` file; ask the user one sharp question.
 
@@ -161,6 +170,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/formats-and-axes.md`
 - `reference/safe-reduction.md`
 - `reference/edc-mdc-fitting.md` — peak fitting: core, then EDC/MDC (PyARPES only)
+- `reference/near-ef-gap.md` — metal EF, resolution-broadened FD divide, symmetrize (gap/pseudogap)
 - `reference/k-and-kz-conversion.md` — analysis-mode k/kz + Γ + npz cache
 - `reference/beamline-geometry.md` — MAESTRO / ALBA LOREA 55° defaults; SLS soft X-ray postponed
 - `reference/failure-modes.md`
@@ -174,6 +184,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 
 - `examples/maestro_pyarpes.md`
 - `examples/fit_edc_mdc.md`
+- `examples/near_ef_gap.md`
 - `examples/convert_k_kz.md`
 
 ## Requires (full analysis)
@@ -192,3 +203,5 @@ See `reference/` for recipes. Common entry points:
 - kz: hv scans with stated `inner_potential` V₀; cache under `analysis/kspace/`
 - Fit: core (Shirley + multi-peak) then EDC/MDC; `broadcast_model` for maps /
   dispersion parameter plots
+- Near-EF / gap: metal `AffineBroadenedFD` → shift; optional broadened FD divide;
+  `arpes.analysis.gap.symmetrize` for gap/pseudogap (`near-ef-gap.md`)

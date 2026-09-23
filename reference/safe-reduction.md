@@ -59,6 +59,8 @@ and `reference/formats-and-axes.md` for load/inspect details.
      name lineshape and background; PyARPES only.
    - k conversion: see `reference/k-and-kz-conversion.md`; state geometry.
    - kz from hv: state inner potential V₀ (or mark as unknown/relative).
+   - Near-EF / gap / pseudogap (user-asked): `reference/near-ef-gap.md` — metal
+     EF, resolution-broadened FD divide, symmetrize when gap/pseudogap.
 
 Do not skip ahead to fit or k/kz on raw angle–energy data without completing
 inspection and at least one reduction product (cut, Fermi map, EDC, or MDC).

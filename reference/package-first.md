@@ -25,6 +25,8 @@ a license to rewrite ARPES infrastructure in the analysis folder.
   instead of `S.apply_offsets`, user input, `pocket_parameters`, or `ktool`
 - Invent **photon-momentum** or beamline **incidence** formulas / angles not in
   `beamline-geometry.md` or user/staff input
+- Invent **symmetrize**, bare-FD divide, or a **gap/Δ fitter** instead of
+  `arpes.analysis.gap` / edge models (`near-ef-gap.md`)
 - Copy large chunks of package logic into `analysis/`
 - Bypass PyARPES because the first plugin attempt failed
 
@@ -52,6 +54,7 @@ Do **not** start (C) until the user clearly chooses it.
 | Hand-rolled Voigt fit when `arpes.fits` exists | Use package fit models |
 | DIY angle→k with ad-hoc formulas | Use `convert_to_kspace`; state assumptions |
 | DIY FS center / Γ from invent centroid code | Offsets / user / `pocket_parameters` / `ktool` / **ask** |
+| DIY symmetrize / bare FD / custom gap Δ | `gap.symmetrize` + resolution-broadened FD; ask if missing |
 | “PyARPES can’t do MH1” → immediately rewrite | Document limitation; ask before new loader |
 
 ## MAESTRO decision tree
