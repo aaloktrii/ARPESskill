@@ -228,11 +228,17 @@ Before any shift / isoenergy / kz:
    - ≥ **20%** of centers are exactly `0` (or identical float junk) when a real
      edge is expected
    - Centers clearly **pinned** to the ROI energy edge
-   - Median fit **stderr** absurd vs the energy window (e.g. stderr ≳ half the
-     fit ROI width), or stderr missing / NaN on a large fraction of slices
-4. **Warn** (ask; do not silently continue to kz) if many slices have
-   `|EF_fit| > 50 meV` (same charging-scale idea as cuts).
-5. **Optional soft checks:** metal-like contrast (I below EF ≫ I above EF);
+   - ≥ **20%** centers still wild after scrub (`|EF| ≳ 250 meV` / MAD outliers) —
+     package fit did not find a real edge on those slices
+4. **Warn** (do not hard-stop solely on these) if:
+   - Median fit **stderr** absurd vs ROI, or stderr NaN on many slices —
+     `AffineBroadenedFD` often returns junk stderr even when `fd_center` is
+     physical; gate on **centers**, not stderr alone
+   - Many slices `|EF_fit| > 50 meV` (charging-scale; flag in products)
+5. **Outlier scrub (allowed):** replace clear spike/wild `fd_center` points via
+   interp from neighbors; document count; re-QC. Do **not** invent a custom
+   edge model — only clean package centers.
+6. **Optional soft checks:** metal-like contrast (I below EF ≫ I above EF);
    `fd_width` overflow → widen/narrow ROI or ask.
 
 Do **not** proceed to `shift_by` / convert while QC fails.
