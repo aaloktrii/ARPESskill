@@ -175,29 +175,104 @@ k_fs = convert_to_kspace(fs_slice)  # or full fmap after EF+offsets
 # Report: energy axis, EF_fit + meV from 0, gamma_method, grid
 ```
 
-## hv → kz
+## hv → kz (Eph stacks)
 
-1. Γ via analyzer/slit-related offset (same `apply_offsets` API).
-2. Confirm `hv` per frame from coords/attrs — **no invented KE matrix** if
-   present and energy is EF-aligned.
-3. Set inner potential; **state source** (user | guess | literature). Never silent.
-4. Convert; prefer **periodicity** cross-check when data allow.
-5. Absolute kz **depends on V₀**.
+### Energy on hv stacks
+
+Absolute **Ek differs per hv slice**. After a correct PyARPES load you normally
+have:
+
+- `eV` — shared energy coord (intended **Eb / E−EF**), and  
+- `hv` — photon energy dim and/or attrs  
+
+Do **not** invent a separate kinetic-energy cube when those exist. KE for
+conversion is implied by **hv + EF-aligned `eV`**. If the load still looks like
+raw analyzer KE with one grid for all hv → state that; align EF **per hv**
+before kz.
+
+Always give the energy-axis notice (Ek / Eb / E−EF / ambiguous).
+
+### EF align across hv (required before analysis / kz)
+
+Mono / undulator drift can move the edge differently at each hv. Use **PyARPES
+only** ([Fermi edge corrections](https://arpes.readthedocs.io/en/latest/notebooks/fermi-edge-correction.html)):
+
+```python
+from arpes.fits.utilities import broadcast_model
+from arpes.fits.fit_models import AffineBroadenedFD
+
+# Near-EF strip (adapt phi / eV windows to data)
+edge = hv_scan.sel(eV=slice(-0.1, 0.1), phi=slice(...)).sum("phi")  # example
+results = broadcast_model(AffineBroadenedFD, edge, "hv")
+# Report EF_fit(hv) and deviation from 0 for each slice (or summary stats)
+hv_ef = hv_scan.G.shift_by(
+    results.F.p("fd_center"), shift_axis="eV", shift_coords=True
+)
+```
+
+Do **not** invent a custom per-hv aligner. If the fit fails → ask.
+
+### Slit / Γ offset (after EF align)
+
+Same family as **cut** Γ: `S.apply_offsets` — no invent center finder.
+
+**Default skill rule:** determine the analyzer/slit offset on the **lowest-hv**
+slice available (after EF align). Reason: photon-momentum push grows with hv
+(soft X-ray). Apply that offset to the **whole** cube, then convert.
+
+If lowest-hv slice is too noisy / no clear normal emission → ask user which
+slice or which offset to use.
+
+### V₀ and convert
+
+1. Confirm `hv` present — **Stop** if missing.  
+2. Set `attrs["inner_potential"]` = V₀ — **ask or state source**; never silent.  
+3. Soft X-ray / photon momentum — see below.  
+4. `convert_to_kspace(...);` prefer **periodicity** check; absolute kz depends on V₀.
 
 ```python
 import numpy as np
 from arpes.utilities.conversion import convert_to_kspace
 
-hv_scan.attrs["inner_potential"] = V0  # eV — MUST state; ask if unknown
+hv_ef.attrs["inner_potential"] = V0  # eV — MUST state
 kz_data = convert_to_kspace(
-    hv_scan,  # or .S.fermi_surface / appropriate reduction
-    # default resolution OK; or user grids:
-    # kp=np.linspace(-2, 2, N),
-    # kz=np.linspace(kz_lo, kz_hi, M),
+    hv_ef,  # or .S.fermi_surface / appropriate reduction
+    # kp=np.linspace(...), kz=np.linspace(...),  # or resolution=
 )
 ```
 
 Typical V₀ ~5–15 eV (material/surface-dependent). Do not silently assume 10 eV.
+
+### Photon momentum (soft X-ray) — gap + beamline defaults
+
+UV ARPES often **neglects** photon momentum. Soft X-ray (rough skill flag:
+**hv ≳ 100 eV**, or user says soft X-ray) may need a correction and the
+**photon incidence geometry**.
+
+PyARPES tutorials document `convert_to_kspace` + **`inner_potential`**; they do
+**not** document a simple public “photon momentum on + incidence angle” switch.
+Treat full photon-momentum correction as a **known gap**:
+
+1. Warn the user when hv is in soft X-ray / high-hv range.  
+2. Load curated defaults from `reference/beamline-geometry.md` (**ALS MAESTRO**
+   and **ALBA LOREA**: default incidence **55°** — ask before use; **SLS** soft
+   X-ray ARPES postponed / dark time).  
+3. **Ask:** accept default geometry notes / edit numbers / ignore photon
+   momentum for this run.
+4. If a correction requires **new** code beyond package APIs → ask A/B/C
+   (`package-first.md`); do not invent formulas silently.
+
+### Pipeline summary
+
+```text
+load hv stack → state energy axis (expect Eb / E−EF + hv)
+  → EF align vs hv (broadcast AffineBroadenedFD on hv + shift_by)
+  → slit/Γ offset from lowest-hv slice (cut-like; ask if unclear)
+  → state V₀
+  → soft X-ray? → beamline geometry default + ask (photon momentum)
+      (ALS MAESTRO 55°; ALBA LOREA 55° — ask; SLS soft X-ray postponed)
+  → convert_to_kspace → analysis/kspace/<stem>_kz.npz
+```
 
 ## Output grid / resolution
 
@@ -275,6 +350,9 @@ is valid.
 | **EF finder before cut/Fermi → k** | PyARPES edge fit; always report EF_fit + deviation from 0 |
 | **Charging warn** | Claimed E−EF/Eb and \|EF_fit\| > 50 meV |
 | **Fermi Γ** | Package offsets / pocket_parameters / ktool / **ask** — no invent center |
+| **EF align hv stacks** | `broadcast_model(..., "hv")` + `shift_by` before kz |
+| **Slit offset for kz** | Prefer **lowest-hv** slice after EF align (cut-like offsets) |
+| **Photon momentum** | Soft X-ray: warn + `beamline-geometry.md` defaults + **ask**; no invent |
 | **State V₀** | Before absolute kz; ask if unknown |
 | **Prefer periodicity** | Cross-check bands vs hv when possible |
 | **No fake Å⁻¹** | Until `convert_to_kspace` runs |

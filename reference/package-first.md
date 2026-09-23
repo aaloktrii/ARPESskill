@@ -21,6 +21,8 @@ a license to rewrite ARPES infrastructure in the analysis folder.
 - Reimplement k-conversion, EDC/MDC extract, or peak fitting by hand
 - Invent a **Fermi-surface / Γ center finder** (centroid, argmax, custom symmetry)
   instead of `S.apply_offsets`, user input, `pocket_parameters`, or `ktool`
+- Invent **photon-momentum** or beamline **incidence** formulas / angles not in
+  `beamline-geometry.md` or user/staff input
 - Copy large chunks of package logic into `analysis/`
 - Bypass PyARPES because the first plugin attempt failed
 

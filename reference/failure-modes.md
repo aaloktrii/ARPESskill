@@ -36,6 +36,10 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Claimed E−EF/Eb but \|EF_fit\| > 50 meV, no note | Warn **possible charging**; still print deviation |
 | Invent k formula or auto-Γ / FS-center finder | `convert_to_kspace` + `apply_offsets` only; Fermi: ask if no package path |
 | Fermi map → k without EF finder | Same energy rules as cut (`k-and-kz-conversion.md`) |
+| hv stack → kz without per-hv EF align | `broadcast_model(..., "hv")` + `shift_by` first |
+| Slit offset from high-hv soft X-ray slice only | Prefer **lowest-hv** slice after EF align |
+| Invent photon-momentum / incidence angles | Use `beamline-geometry.md`; MAESTRO / ALBA LOREA **55°** default then ask; SLS soft X-ray postponed |
+| Invent KE cube when `eV`+`hv` present | Use EF-aligned `eV` + `hv`; no invented matrix |
 | Long swept “Cut” treated as valence only | Check core-as-2D heuristics; report image + angle-integrated EDC (`default-overview-plots.md`) |
 | Valence k-conversion on suspected core-as-2D | Stop / ask; user must override science kind |
 | Re-walk folder / paste full catalog every turn | Build `analysis/manifest.json`; recall later (`folder-manifest.md`) |

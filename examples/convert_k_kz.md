@@ -84,23 +84,40 @@ Then `convert_to_kspace` on the near-EF isoenergy / map. Save
 
 ```python
 from arpes.io import example_data
+from arpes.fits.utilities import broadcast_model
+from arpes.fits.fit_models import AffineBroadenedFD
 from arpes.utilities.conversion import convert_to_kspace
 import numpy as np
 from pathlib import Path
 from datetime import datetime, timezone
 
-spectrum = example_data.photon_energy
+spectrum = example_data.photon_energy.spectrum
 
-# Γ offset (provisional or user) — apply before convert
-gamma_method = "provisional:nearest_zero"
-# spectrum.S.apply_offsets({...})
+# Energy axis notice: expect Eb / E−EF + hv (not a single Ek for all slices)
 
-V0 = 10.0  # eV — ASK user if unknown; state source (guess/literature/user)
-spectrum.attrs["inner_potential"] = V0
+# EF align across hv (required) — PyARPES only
+edge = spectrum.sel(eV=slice(-0.1, 0.1))  # adapt; often sum a phi window first
+# edge = spectrum.sel(phi=slice(...), eV=slice(-0.1, 0.1)).sum("phi")
+results = broadcast_model(AffineBroadenedFD, edge, "hv")
+# Report EF_fit(hv) + deviations from 0
+spectrum_ef = spectrum.G.shift_by(
+    results.F.p("fd_center"), shift_axis="eV", shift_coords=True
+)
 
-# Default grid OK; user may pass N / linspace
+# Slit / Γ offset: prefer lowest-hv slice (cut-like); user wins; ask if unclear
+hv_min = float(spectrum_ef.coords["hv"].min())
+low = spectrum_ef.sel(hv=hv_min, method="nearest")
+gamma_method = "provisional:lowest_hv"  # or "user" after ask
+# low.S.apply_offsets({...}); then apply same offsets to spectrum_ef
+
+V0 = 10.0  # eV — ASK if unknown; state source
+spectrum_ef.attrs["inner_potential"] = V0
+
+# Soft X-ray (hv ≳ 100 eV): warn; see reference/beamline-geometry.md (MAESTRO);
+# ask accept / edit incidence / ignore photon momentum — no invent angles
+
 kz_data = convert_to_kspace(
-    spectrum.S.fermi_surface,
+    spectrum_ef.S.fermi_surface,
     kp=np.linspace(-2, 2, 500),
     kz=np.linspace(3.5, 5.2, 400),
 )
@@ -116,9 +133,11 @@ np.savez_compressed(
     source_path=np.array("example_data.photon_energy"),
     gamma_method=np.array(gamma_method),
     inner_potential=np.array(V0),
-    energy_convention=np.array("EF-aligned binding-like"),
+    energy_convention=np.array("E-EF_after_per_hv_shift"),
     grid_spec=np.array("kp=linspace(-2,2,500); kz=linspace(3.5,5.2,400)"),
-    assumptions=np.array(f"V0={V0} eV (stated); absolute kz depends on V0"),
+    assumptions=np.array(
+        f"V0={V0} eV; offset from lowest hv; photon momentum TBD/ask"
+    ),
     created_utc=np.array(datetime.now(timezone.utc).isoformat()),
     skill_ref=np.array("arpes"),
 )
@@ -126,8 +145,12 @@ np.savez_compressed(
 
 **Agent narrative:**
 
+- Expect **Eb / E−EF + hv**; no invented KE cube.
+- Print **EF_fit(hv)** (or summary) after broadcast align.
+- Slit offset from **lowest hv**; user override wins.
 - Print **V₀** and source; absolute kz scales with V₀.
-- No separate KE matrix if `hv` + EF-aligned `eV` are present.
+- Soft X-ray: `beamline-geometry.md` — MAESTRO / ALBA LOREA propose **55°**
+  (ask); SLS soft X-ray postponed.
 - Prefer periodicity check vs hv when data allow.
 - If user changes Γ / V₀ / grid → recompute and overwrite npz.
 

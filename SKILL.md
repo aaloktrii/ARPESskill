@@ -82,6 +82,10 @@ volumes, etc.
   nearest-0°. **Fermi maps:** package `S.offsets` / optional `pocket_parameters`
   / optional `ktool` only — else **ask**; never invent a center finder
   (`reference/k-and-kz-conversion.md`).
+- **hv → kz:** EF-align **per hv** (PyARPES broadcast on `hv`); slit offset from
+  **lowest-hv** slice; state V₀; soft X-ray → `reference/beamline-geometry.md`
+  (MAESTRO 55°; ALBA LOREA 55° — ask; SLS soft X-ray postponed) + **ask**
+  about photon momentum / incidence.
 - After k/kz conversion: save `analysis/kspace/*.npz` with required meta;
   prefer reload from cache when meta still matches.
 - **Core-as-2D:** cut-shaped file with swept + deep/core clues (soft: span ≳10 eV
@@ -153,6 +157,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/safe-reduction.md`
 - `reference/edc-mdc-fitting.md`
 - `reference/k-and-kz-conversion.md` — analysis-mode k/kz + Γ + npz cache
+- `reference/beamline-geometry.md` — MAESTRO / ALBA LOREA 55° defaults; SLS soft X-ray postponed
 - `reference/failure-modes.md`
 - `reference/pyarpes-env.md` — Python 3.8 dedicated venv + install
 - `reference/token-usage.md` — when to warn about token cost
