@@ -63,12 +63,21 @@ print(result.fit_report())
 
 ```python
 from arpes.fits.utilities import broadcast_model
-from arpes.fits.fit_models import LorentzianModel
+from arpes.fits.fit_models import LorentzianModel, LinearModel, QuadraticModel
 
 # Example: MDCs vs energy — use actual dim names
 fit_results = broadcast_model(LorentzianModel, cut, "eV")
-# Derive center vs k and width vs E; save under analysis/
+# centers = fit_results.F.p("center")   # inspect API for installed version
+# widths  = fit_results.F.p(...)        # width param name depends on model
+
+# Default plots (MDC path): E vs k, width vs k; also width vs E if useful
+# Prefer k-space cut for vF / m*
+
+# Second-stage band fit on centers — ask linear vs parabolic if unclear
+# band = LinearModel().guess_fit(centers_near_EF)      # → vF from slope
+# band = QuadraticModel().guess_fit(centers_near_bottom)  # → m* from curvature
+# Report vF and/or m* with units + fit window; save PNGs under analysis/
 ```
 
-**Agent narrative:** core first when relevant; always name lineshape + background;
-no freestyle fit engines; save params/figures under `analysis/`.
+**Agent narrative:** after broadcast, always draw the default follow-up curves;
+then linear/parabolic on E(k) for vF/m* when appropriate; package models only.

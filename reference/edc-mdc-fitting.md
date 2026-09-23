@@ -148,13 +148,52 @@ fit_results = broadcast_model(LorentzianModel, data_2d, "eV")  # use real dim na
 - Momentum / `phi` / `pixel` → fit EDCs vs that axis.  
 - Multi-peak: pass a list of model classes or a composite, with `params=`.
 
-### Derived plots (after broadcast)
+### Derived plots (after broadcast) — defaults
 
-| Plot | X | Y | Use |
-|------|---|---|-----|
-| Center vs momentum | k (Å⁻¹) | E (eV) | Dispersion E(k) |
-| Width vs E | E (eV) | width | Broadening vs binding |
-| Width vs k | k (Å⁻¹) | width | Momentum-dependent width |
+After a valence **broadcast** fit, always save follow-up curves under `analysis/`
+(and link in the report). Do not stop at raw `fit_report` text.
+
+#### Which plots (by mode)
+
+| Broadcast mode | Required by default | Also recommended |
+|----------------|---------------------|------------------|
+| **MDC vs E** (dispersion track) | **E vs k** (peak centers) · **width vs k** | **width vs E** |
+| **EDC vs k** | **width vs E** | center vs k; width vs k if useful |
+
+Single-curve fit only → plot data + model (+ residual); **no** E(k) / vF / m*
+until a broadcast (or user-supplied) dispersion exists.
+
+Extract centers/widths from broadcast results (e.g. `.F.p("center")` /
+width params — inspect structure for the installed PyARPES version). Label axes
+with units; state lineshape and whether width is σ, γ, or FWHM.
+
+#### Second-stage band fit on E vs k (physics)
+
+When **E vs k** centers exist (prefer after **k-conversion**; if still angle,
+label provisional and ask to convert):
+
+1. Overlay a smooth band using **package models only**:
+   - `LinearModel` near EF → **Fermi velocity**
+   - `QuadraticModel` / parabola near band extremum → **effective mass**
+2. If linear vs parabolic is unclear → **ask** (do not invent higher-order bands).
+3. Fit only inside a stated **k window** (and note E range).
+
+| Quantity | How | Report |
+|----------|-----|--------|
+| **vF** | Slope of linear E(k) near EF | Value + units (e.g. eV·Å or m/s — state conversion) |
+| **m\*** | Curvature of \(E \approx E_0 + \hbar^2 (k-k_0)^2/(2m^*)\) | In m_e; state formula used |
+| **kF / k0 / E0** | Intercept / vertex from the same fit | With method |
+
+Use PyARPES/`lmfit` models already in the stack (e.g. `LinearModel`,
+`QuadraticModel`). Optional advanced: `arpes.analysis.self_energy` — **ask**
+before using; not part of the default report.
+
+#### Caveats
+
+- Resolution and lineshape choice bias vF and m* — state assumptions.  
+- Width → lifetime only with explicit assumptions (see above).  
+- No freestyle tight-binding / custom Hamiltonian unless user chooses
+  package-first (C).
 
 Warn before large broadcasts (`token-usage.md`).
 
@@ -174,5 +213,8 @@ Warn before large broadcasts (`token-usage.md`).
 1. EDC/MDC extracted with stated window.  
 2. Lineshape + background named.  
 3. Center/width/amplitude reported (σ/γ/FWHM clear).  
-4. Broadcast: mode stated; derived plot described or saved.  
-5. No lifetime claims without assumptions.
+4. Broadcast: mode stated; **default derived plots** saved (E vs k / width vs k /
+   width vs E as required above).  
+5. If E vs k available: linear or parabolic band fit (ask which) → report **vF**
+   and/or **m\*** with units + k window — or state skipped with reason.  
+6. No lifetime claims without assumptions.

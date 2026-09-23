@@ -12,6 +12,8 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | "Γ is at image center" | No — state method to find Γ (manual pick, fit, symmetry, model) |
 | Fit without lineshape | Name Gaussian, Lorentzian, or Voigt (+ background if used) |
 | Core fit without ROI / invent Doniach–Šunjić | Shirley + package peaks; ask if exotic model missing (`edc-mdc-fitting.md`) |
+| Broadcast fit with no E vs k / width follow-up plots | Save default derived curves (`edc-mdc-fitting.md`) |
+| Quote vF / m* without band model or k window | Linear/Quadratic on centers; state units + window; prefer k-space |
 | Treat core-as-2D as valence EDC/MDC broadcast | Angle-integrate; core section first; no default k-convert |
 | Use TensorSpec APIs in v1 | Defer; use PyARPES for load, reduce, fit, and k/kz |
 | Launch QtTool as only path | Prefer scripted PyARPES + matplotlib; GUIs are optional |

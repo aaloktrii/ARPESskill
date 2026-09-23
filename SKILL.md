@@ -54,7 +54,9 @@ volumes, etc.
 - Never claim Γ found without method (manual / fit / model).
 - Never report fits without naming lineshape (+ background if used).
 - **Peak fitting:** PyARPES models only (core → then EDC/MDC); ask before any
-  new lineshape (`reference/edc-mdc-fitting.md`).
+  new lineshape (`reference/edc-mdc-fitting.md`). After valence broadcast: default
+  E vs k / width plots; linear or parabolic on E(k) → report vF / m* when asked
+  by that workflow (prefer k-space).
 - Prefer scripted **calls to PyARPES** (+ matplotlib) over launching Qt/Bokeh GUIs.
 - **Package-first:** use PyARPES / existing project APIs; do **not** write a new
   loader or reimplement package features without asking (see
