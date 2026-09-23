@@ -4,6 +4,11 @@
 Fermi–Dirac correction / **gap** / **pseudogap** on a **cut** (or a stated EDC
 from a cut). Not part of the default quick report.
 
+**Capabilities:** `fit_fermi_edge`, `shift_energy`, `extract_edc_mdc`,
+`fd_broadened`, `symmetrize_edc`, `gap_delta_fit` —
+`reference/backend-capability-map.md` (update that table if this workflow gains
+steps).
+
 **Docs / package:** [Fermi edge corrections](https://arpes.readthedocs.io/en/latest/notebooks/fermi-edge-correction.html) ·
 `arpes.analysis.gap` (`symmetrize`, helpers) · fit models
 `AffineBroadenedFD` / `FermiDiracModel` (check installed names).

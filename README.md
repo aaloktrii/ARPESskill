@@ -9,6 +9,8 @@ fit peaks (Gaussian / Lorentzian / Voigt), convert cuts/Fermi maps to
 k-space, convert photon-energy scans to kz, and (when asked) run near-EF
 cut analysis for gap/pseudogap (metal EF, resolution-broadened FD divide,
 symmetrize) — without inventing coordinates or physics assumptions.
+Default backend **PyARPES**; optional **user-map** of project functions via
+a living capability inventory when PyARPES is declined.
 
 ## What this is not (v1)
 

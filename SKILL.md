@@ -5,9 +5,10 @@ description: >
   EDC/MDC extraction, Gaussian/Lorentzian/Voigt peak fitting, k-space
   conversion, photon-energy to kz conversion, and near-EF gap/pseudogap
   analysis (metal EF, resolution-broadened FD divide, symmetrize) via
-  PyARPES. Use when working with ARPES spectra, Fermi surfaces, EDC, MDC,
-  MAESTRO or NeXus/HDF5 ARPES files, angle-to-momentum conversion, hv/kz
-  scans, pseudogap, or PyARPES.
+  PyARPES or a confirmed user-project capability map. Use when working
+  with ARPES spectra, Fermi surfaces, EDC, MDC, MAESTRO or NeXus/HDF5
+  ARPES files, angle-to-momentum conversion, hv/kz scans, pseudogap,
+  or PyARPES.
 ---
 
 # ARPES
@@ -41,11 +42,15 @@ volumes, etc.
      `python3.8 -m venv .venv-arpes` → `pip install arpes` in that venv →
      re-check import). If `python3.8` is missing, ask Homebrew vs conda
      (or a user-provided 3.8 path) before inventing installs.
-   - If **no**: ask whether to continue with **xarray + h5py load/inspect only**
-     (no fit / k / kz). Only then use that fallback; say so explicitly.
-4. After setup, run analysis with `.venv-arpes/bin/python` (state that path).
-5. Always state which path was used (PyARPES 3.8 venv vs inspect-only).
-6. TensorSpec / TensorSpec_GUI: out of v1 — if asked, say deferred.
+   - If **no**: enter **user-map** path — search project → propose capability →
+     callable map → **confirm** → use (`reference/backend-capability-map.md`).
+     Only if no mappable `load_spectrum` (etc.) → ask for **xarray + h5py
+     load/inspect only** (no fit / k / kz / gap). State path explicitly.
+4. After PyARPES setup, run with `.venv-arpes/bin/python` (state that path).
+5. Always state backend: `pyarpes` | `user-map` | `inspect-only`.
+6. TensorSpec / TensorSpec_GUI: deferred named backend later (not wired).
+7. **Living list:** every new skill workflow ships PyARPES-first docs **and**
+   new/updated rows in `reference/backend-capability-map.md` in the same change.
 
 ## Hard rules
 
@@ -54,21 +59,26 @@ volumes, etc.
 - Never hv→kz without stating inner potential V₀ (or that it is unknown).
 - Never claim Γ found without method (manual / fit / model).
 - Never report fits without naming lineshape (+ background if used).
-- **Peak fitting:** PyARPES models only (core → then EDC/MDC); ask before any
-  new lineshape (`reference/edc-mdc-fitting.md`). After valence broadcast: default
-  E vs k / width plots; linear or parabolic on E(k) → report vF / m* when asked
-  by that workflow (prefer k-space).
+- **Peak fitting:** backend models only (PyARPES or confirmed user-map; core →
+  then EDC/MDC); ask before any new lineshape (`reference/edc-mdc-fitting.md`).
+  After valence broadcast: default E vs k / width plots; linear or parabolic on
+  E(k) → report vF / m* when asked by that workflow (prefer k-space).
 - **Near-EF / gap / pseudogap (cuts, user-asked only):** metal-ref EF → shift
   sample; optional divide by **resolution-broadened** FD (state T + resolution);
   if gap/pseudogap → symmetrize EDC about E=0 (`arpes.analysis.gap.symmetrize`);
   state p–h symmetry; ask before inventing a Δ fitter
   (`reference/near-ef-gap.md`).
-- Prefer scripted **calls to PyARPES** (+ matplotlib) over launching Qt/Bokeh GUIs.
-- **Package-first:** use PyARPES / existing project APIs; do **not** write a new
-  loader or reimplement package features without asking (see
-  `reference/package-first.md`).
+- Prefer scripted **calls to the active backend** (PyARPES or confirmed user-map)
+  + matplotlib over launching Qt/Bokeh GUIs.
+- **Package-first:** use PyARPES / confirmed user-map callables / existing
+  project APIs; do **not** write a new loader or reimplement package features
+  without asking (see `reference/package-first.md`,
+  `reference/backend-capability-map.md`).
 - Prefer existing project loaders before writing new ones — and **ask** before
   any new loader.
+- **Capability map living list:** when inserting a new analysis workflow, add
+  PyARPES-default row(s) to `reference/backend-capability-map.md` in the same
+  change so later sessions can map user replacements.
 - **Never skip the PyARPES / Python 3.8 venv question** when `import arpes`
   fails or `sys.version_info` is not `(3, 8)`.
 - **Never `pip install arpes` into Python 3.9+** or into the user’s default env
@@ -107,10 +117,10 @@ volumes, etc.
 
 ## Package-first (important)
 
-Default = **call code that already exists** (PyARPES or the project).
-If a package path fails or is missing a feature, **tell the user** and ask
-before writing a new custom loader/implementation. Details:
-`reference/package-first.md`.
+Default = **call code that already exists** (PyARPES, or **confirmed** user-map
+callables, or the project). If a path fails or is missing a feature, **tell the
+user** and ask before writing a new custom loader/implementation. Details:
+`reference/package-first.md`, `reference/backend-capability-map.md`.
 
 ## Token awareness
 
@@ -122,8 +132,8 @@ chat). Details: `reference/token-usage.md`.
 ## Error handling
 
 - Missing PyARPES / wrong Python — **ask to create `.venv-arpes` (Python 3.8)
-  and install** (`reference/pyarpes-env.md`); only after user declines, offer
-  xarray/h5py inspect-only.
+  and install** (`reference/pyarpes-env.md`); if declined → user-map path
+  (`backend-capability-map.md`); only then inspect-only xarray/h5py.
 - Package load fails / feature missing — quote error; ask before custom code
   (`reference/package-first.md`).
 - Ambiguous axes — stop and ask one sharp question.
@@ -139,7 +149,8 @@ chat). Details: `reference/token-usage.md`.
 2. Identify artifact (file type, shape, **existing** package/project loaders);
    prefer rows from the manifest when present.
 3. Check PyARPES + Python 3.8; if missing/wrong, ask for dedicated venv
-   (see Stack policy / `reference/pyarpes-env.md`) before continuing.
+   (see Stack policy / `reference/pyarpes-env.md`). If declined → propose
+   user capability map (`backend-capability-map.md`) before inspect-only.
 4. Try package load/analysis first (`reference/package-first.md`). For
    MAESTRO: prefer sibling **`.fits`** + `location='MAESTRO'` before MH1
    `.h5`; pick main spectrum carefully (`formats-and-axes.md`). If load
@@ -178,6 +189,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/token-usage.md` — when to warn about token cost
 - `reference/default-overview-plots.md` — cut / Fermi trio / hv–kz trio + assumptions
 - `reference/package-first.md` — use package APIs; ask before new code
+- `reference/backend-capability-map.md` — capability IDs; PyARPES defaults; user-map; living list
 - `reference/folder-manifest.md` — folder inventory before analysis; recall later
 
 ## Examples
@@ -185,6 +197,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `examples/maestro_pyarpes.md`
 - `examples/fit_edc_mdc.md`
 - `examples/near_ef_gap.md`
+- `examples/backend_user_map.md`
 - `examples/convert_k_kz.md`
 
 ## Requires (full analysis)
