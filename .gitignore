@@ -9,3 +9,4 @@ __pycache__/
 .DS_Store
 analysis/
 *.npz
+.git-filter-replacements.txt
