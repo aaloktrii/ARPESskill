@@ -44,9 +44,12 @@ and `reference/formats-and-axes.md` for load/inspect details.
    - Title or caption should state binding vs kinetic and key selections.
    - **Default overview** (catalog / first look): follow
      `reference/default-overview-plots.md` —
-     **cut** → full detector×energy (not a 1D line);
-     **Fermi map** → trio (dispersion + isoenergy near EF/¼-top + perp);
-     **hv/kz (EPH)** → trio (mid-hv dispersion + isoenergy vs hv + energy×hv).
+     **valence cut** → full detector×energy;
+     **suspected core-as-2D** (swept + deep/core clues; soft: span ≳10 eV or
+     deepest ≳5 eV below EF) → detector×energy **and** angle-integrated EDC;
+     **Fermi map** → trio; **hv/kz** → trio.
+   - After step 2: if cut-shaped but core-as-2D heuristics fire, **tell the user**
+     and do not treat as valence dispersion for k conversion by default.
 
 7. **Only then fit or convert to k/kz**
    - Fitting: see `reference/edc-mdc-fitting.md`; name lineshape and background.

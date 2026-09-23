@@ -82,6 +82,10 @@ volumes, etc.
   always wins**; never claim Γ without method.
 - After k/kz conversion: save `analysis/kspace/*.npz` with required meta;
   prefer reload from cache when meta still matches.
+- **Core-as-2D:** cut-shaped file with swept + deep/core clues (soft: span ≳10 eV
+  or deepest ≳5 eV below EF) → suspect core level saved as 2D image; quick
+  report = detector×energy **and** angle-integrated EDC; no default valence k
+  (`reference/default-overview-plots.md`).
 
 ## Package-first (important)
 

@@ -100,6 +100,9 @@ Before `convert_to_kspace` on a cut:
 
 ## In-plane k — cut
 
+**Skip** this path if the file is **suspected core-as-2D**
+(`reference/default-overview-plots.md`) unless the user overrides to valence.
+
 ```python
 from arpes.fits.utilities import broadcast_model
 from arpes.fits.fit_models import AffineBroadenedFD

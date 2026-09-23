@@ -35,6 +35,8 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Convert cut to k without PyARPES EF finder | Fit edge first; report EF_fit + meV from 0; shift EF→0 |
 | Claimed E−EF/Eb but \|EF_fit\| > 50 meV, no note | Warn **possible charging**; still print deviation |
 | Invent k formula or auto-Γ finder | `convert_to_kspace` + `apply_offsets` only; no PyARPES auto-Γ API |
+| Long swept “Cut” treated as valence only | Check core-as-2D heuristics; report image + angle-integrated EDC (`default-overview-plots.md`) |
+| Valence k-conversion on suspected core-as-2D | Stop / ask; user must override science kind |
 | Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
 
 ## Additional guidance
