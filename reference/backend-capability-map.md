@@ -50,8 +50,8 @@ with PyARPES versions — check installed package before claiming exact names.
 | `state_axes` | Dims, units, energy convention | `.dims` / `.coords` / `.attrs` | | `formats-and-axes.md` |
 | `folder_manifest` | Multi-file inventory | thin glue → `analysis/manifest.json` | | `folder-manifest.md` |
 | `overview_plot` | Quick-report figures | matplotlib (+ package plot helpers if used) | | `default-overview-plots.md` |
-| `fit_fermi_edge` | Metal / EF edge fit | `AffineBroadenedFD` / FD models + `guess_fit` / `broadcast_model` | | `k-and-kz-conversion.md`, `near-ef-gap.md` |
-| `shift_energy` | Align EF → 0 | `G.shift_by` (or equiv.) | | `k-and-kz-conversion.md`, `near-ef-gap.md` |
+| `fit_fermi_edge` | Metal / EF edge fit | `AffineBroadenedFD` / FD models + `guess_fit` / `broadcast_model`; **hv stacks:** angle-summed near-EF then vs `hv` + QC (`k-and-kz-conversion.md`) | | `k-and-kz-conversion.md`, `near-ef-gap.md` |
+| `shift_energy` | Align EF → 0 | `G.shift_by` (hv: `shift_by(centers, shift_axis="eV", shift_coords=True)` + post-shift verify) | | `k-and-kz-conversion.md`, `near-ef-gap.md` |
 | `extract_edc_mdc` | EDC / MDC extraction | `sel` / `isel` / package helpers | | `safe-reduction.md`, `edc-mdc-fitting.md` |
 | `fit_peak` | Single-curve peak fit | `GaussianModel` / `LorentzianModel` / `VoigtModel` + `guess_fit` | | `edc-mdc-fitting.md` |
 | `fit_core` | Core / XPS-style fit | Shirley + multi-peak package models | | `edc-mdc-fitting.md` |

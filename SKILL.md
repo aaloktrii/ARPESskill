@@ -102,10 +102,12 @@ volumes, etc.
   nearest-0°. **Fermi maps:** package `S.offsets` / optional `pocket_parameters`
   / optional `ktool` only — else **ask**; never invent a center finder
   (`reference/k-and-kz-conversion.md`).
-- **hv → kz:** EF-align **per hv** (PyARPES broadcast on `hv`); slit offset from
-  **lowest-hv** slice; state V₀; soft X-ray → `reference/beamline-geometry.md`
-  (MAESTRO 55°; ALBA LOREA 55° — ask; SLS soft X-ray postponed) + **ask**
-  about photon momentum / incidence.
+- **hv → kz:** EF-align **per hv** on an **angle-integrated** near-EF edge
+  (ban mid-φ default); QC + plot EF_fit vs hv; per-slice report; post-shift
+  verify ≈0; slit offset from **lowest-hv** slice; state V₀; soft X-ray →
+  `reference/beamline-geometry.md` (MAESTRO 55°; ALBA LOREA 55° — ask; SLS soft
+  X-ray postponed) + **ask** about photon momentum / incidence; npz must store
+  `ef_fit_per_hv` (`reference/k-and-kz-conversion.md`).
 - After k/kz conversion: save `analysis/kspace/*.npz` with required meta;
   prefer reload from cache when meta still matches.
 - **Core-as-2D:** cut-shaped file with swept + deep/core clues (soft: span ≳10 eV
@@ -163,9 +165,10 @@ chat). Details: `reference/token-usage.md`.
    Update manifest `overview_paths` when PNGs are written.
 9. **Analysis / user-requested momentum:** convert to k / kz
    (`reference/k-and-kz-conversion.md`) — state energy axis; EF finder +
-   report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); Γ per
-   cut vs Fermi rules; stated V₀ for kz; save `analysis/kspace/*.npz`; link
-   `product_paths` on the manifest row.
+   report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); for **hv
+   stacks**: angle-summed edge + per-hv QC + post-shift verify + `ef_fit_per_hv`
+   in npz; Γ per cut vs Fermi rules; stated V₀ for kz; save
+   `analysis/kspace/*.npz`; link `product_paths` on the manifest row.
 10. If line / core analysis — fit (`reference/edc-mdc-fitting.md`: **core first**,
    then EDC/MDC; package models only).
 11. If user asks near-EF / metal EF / FD / **gap** / **pseudogap** on a cut —

@@ -95,14 +95,18 @@ spectrum = example_data.photon_energy.spectrum
 
 # Energy axis notice: expect Eb / E−EF + hv (not a single Ek for all slices)
 
-# EF align across hv (required) — PyARPES only
-edge = spectrum.sel(eV=slice(-0.1, 0.1))  # adapt; often sum a phi window first
-# edge = spectrum.sel(phi=slice(...), eV=slice(-0.1, 0.1)).sum("phi")
+# EF align across hv (required) — angle-summed near-EF; ban mid-φ default
+edge = spectrum.sel(eV=slice(-0.15, 0.1)).sum("phi")  # adapt dim / window
 results = broadcast_model(AffineBroadenedFD, edge, "hv")
-# Report EF_fit(hv) + deviations from 0
+# If broadcast_model broken: loop summed-φ EDCs + AffineBroadenedFD (not mid-φ)
+centers = results.F.p("fd_center")
+# QC hard-stop: plot EF_fit vs hv; report per-hv; fail if ≥20% zero/junk,
+# pinned to ROI, or absurd stderr — see reference/k-and-kz-conversion.md
 spectrum_ef = spectrum.G.shift_by(
-    results.F.p("fd_center"), shift_axis="eV", shift_coords=True
+    centers, shift_axis="eV", shift_coords=True
 )
+# Post-shift: summed-φ EDC at low/mid/high hv must sit ≈0 (≲20 meV)
+# before isoenergy / kz — else stop / label EF-misaligned
 
 # Slit / Γ offset: prefer lowest-hv slice (cut-like); user wins; ask if unclear
 hv_min = float(spectrum_ef.coords["hv"].min())
@@ -133,10 +137,15 @@ np.savez_compressed(
     source_path=np.array("example_data.photon_energy"),
     gamma_method=np.array(gamma_method),
     inner_potential=np.array(V0),
+    hv=np.asarray(centers.coords["hv"]),
+    ef_fit_per_hv=np.asarray(centers.values),
+    ef_deviation_meV=np.abs(np.asarray(centers.values)) * 1000.0,
+    ef_qc_passed=np.array(True),  # only if QC + post-shift passed
     energy_convention=np.array("E-EF_after_per_hv_shift"),
     grid_spec=np.array("kp=linspace(-2,2,500); kz=linspace(3.5,5.2,400)"),
     assumptions=np.array(
-        f"V0={V0} eV; offset from lowest hv; photon momentum TBD/ask"
+        f"V0={V0} eV; offset from lowest hv; photon momentum TBD/ask; "
+        "EF from angle-summed near-EF vs hv"
     ),
     created_utc=np.array(datetime.now(timezone.utc).isoformat()),
     skill_ref=np.array("arpes"),
@@ -146,7 +155,10 @@ np.savez_compressed(
 **Agent narrative:**
 
 - Expect **Eb / E−EF + hv**; no invented KE cube.
-- Print **EF_fit(hv)** (or summary) after broadcast align.
+- EF from **angle-summed** near-EF vs hv — **not** mid-φ default.
+- Print **per-hv EF_fit** + meV from 0; plot EF_fit vs hv; QC hard-stop.
+- Post-shift: low/mid/high hv check EDCs ≈0 before isoenergy/kz.
+- npz: store `ef_fit_per_hv` (scalar alone insufficient).
 - Slit offset from **lowest hv**; user override wins.
 - Print **V₀** and source; absolute kz scales with V₀.
 - Soft X-ray: `beamline-geometry.md` — MAESTRO / ALBA LOREA propose **55°**

@@ -195,22 +195,86 @@ Always give the energy-axis notice (Ek / Eb / E−EF / ambiguous).
 ### EF align across hv (required before analysis / kz)
 
 Mono / undulator drift can move the edge differently at each hv. Use **PyARPES
-only** ([Fermi edge corrections](https://arpes.readthedocs.io/en/latest/notebooks/fermi-edge-correction.html)):
+only** ([Fermi edge corrections](https://arpes.readthedocs.io/en/latest/notebooks/fermi-edge-correction.html)).
+
+**Hard rule for hv stacks:** fit an **angle-integrated** near-EF edge, then
+broadcast on `hv`. Mid-φ / single-pixel EDC is **forbidden as the default**
+(too noisy / biased). User may override to a stated φ window only if they ask.
+
+#### 1. Edge ROI (required)
+
+1. Near-EF energy strip (adapt window; state it — e.g. `eV=slice(-0.15, 0.1)`).
+2. Integrate (sum/mean) over **detector angle** (`phi` / equivalent), or a
+   **wide φ window** that covers the slit — not one mid-φ pixel.
+3. Then `broadcast_model(AffineBroadenedFD, edge, "hv")` (or package equiv.).
 
 ```python
 from arpes.fits.utilities import broadcast_model
 from arpes.fits.fit_models import AffineBroadenedFD
 
-# Near-EF strip (adapt phi / eV windows to data)
-edge = hv_scan.sel(eV=slice(-0.1, 0.1), phi=slice(...)).sum("phi")  # example
+# REQUIRED pattern: near-EF × angle-integrated, then fit vs hv
+edge = hv_scan.sel(eV=slice(-0.15, 0.1)).sum("phi")  # or mean; real angle dim
 results = broadcast_model(AffineBroadenedFD, edge, "hv")
-# Report EF_fit(hv) and deviation from 0 for each slice (or summary stats)
+centers = results.F.p("fd_center")  # DataArray vs hv — keep the full curve
+```
+
+#### 2. QC before convert (hard stop)
+
+Before any shift / isoenergy / kz:
+
+1. **Plot and store** `EF_fit` vs `hv` under `analysis/` (link path in report).
+2. **Report every slice:** `EF_fit(hv)` and meV from 0 — **not** mean-only.
+3. **Fail (stop and ask)** if any of:
+   - ≥ **20%** of centers are exactly `0` (or identical float junk) when a real
+     edge is expected
+   - Centers clearly **pinned** to the ROI energy edge
+   - Median fit **stderr** absurd vs the energy window (e.g. stderr ≳ half the
+     fit ROI width), or stderr missing / NaN on a large fraction of slices
+4. **Warn** (ask; do not silently continue to kz) if many slices have
+   `|EF_fit| > 50 meV` (same charging-scale idea as cuts).
+5. **Optional soft checks:** metal-like contrast (I below EF ≫ I above EF);
+   `fd_width` overflow → widen/narrow ROI or ask.
+
+Do **not** proceed to `shift_by` / convert while QC fails.
+
+#### 3. Package fallback (broadcast broken)
+
+If `broadcast_model` fails or returns unusable objects (e.g. `np.object` mess):
+
+- Loop **angle-summed** near-EF EDCs per hv with `AffineBroadenedFD().guess_fit`
+  (still package model).
+- Same QC on the collected centers.
+- **Forbidden:** silent fallback to mid-φ-only EDCs.
+
+Do **not** invent a custom edge fitter. If package fit still fails → ask.
+
+#### 4. Shift API (canonical)
+
+```python
 hv_ef = hv_scan.G.shift_by(
-    results.F.p("fd_center"), shift_axis="eV", shift_coords=True
+    centers, shift_axis="eV", shift_coords=True
 )
 ```
 
-Do **not** invent a custom per-hv aligner. If the fit fails → ask.
+Prefer this over hand-rolled per-slice concat. If manual concat is unavoidable,
+apply the **same QC** and document why `shift_by` was not used.
+
+#### 5. Post-shift verify (required before isoenergy / kz)
+
+After align, build **angle-summed** EDCs at **low / mid / high** hv. Edge must
+sit near **≈0** (skill default: \|edge\| ≲ **20 meV** on these checks).  
+If not → **stop / ask**; do not trust isoenergy or kz maps.
+
+Optional: re-fit a quick edge on those three check EDCs to confirm.
+
+#### 6. Isoenergy / kz FS gate
+
+Near-EF isoenergy maps and kz conversion run **only after** steps 1–5 pass.  
+Otherwise label products **EF-misaligned / do not trust** and do not present
+them as calibrated FS / kz.
+
+Capabilities: `fit_fermi_edge`, `shift_energy` —
+`reference/backend-capability-map.md`.
 
 ### Slit / Γ offset (after EF align)
 
@@ -266,12 +330,16 @@ Treat full photon-momentum correction as a **known gap**:
 
 ```text
 load hv stack → state energy axis (expect Eb / E−EF + hv)
-  → EF align vs hv (broadcast AffineBroadenedFD on hv + shift_by)
+  → near-EF × angle-summed edge → AffineBroadenedFD vs hv
+  → QC: EF_fit(hv) plot + per-slice report; hard-stop if pinned/junk/stderr
+  → G.shift_by(centers, shift_axis="eV", shift_coords=True)
+  → post-shift: summed-φ EDC at low/mid/high hv ≈0 (≲20 meV)
   → slit/Γ offset from lowest-hv slice (cut-like; ask if unclear)
   → state V₀
   → soft X-ray? → beamline geometry default + ask (photon momentum)
       (ALS MAESTRO 55°; ALBA LOREA 55° — ask; SLS soft X-ray postponed)
-  → convert_to_kspace → analysis/kspace/<stem>_kz.npz
+  → isoenergy / convert_to_kspace only if EF QC + post-shift passed
+  → analysis/kspace/<stem>_kz.npz (include ef_fit_per_hv)
 ```
 
 ## Output grid / resolution
@@ -303,13 +371,18 @@ analysis/kspace/<stem>_kz.npz   # hv stack → kz (+ in-plane as present)
 | `inner_potential` | float; omit or NaN if N/A |
 | `hv` | scalar or array |
 | `energy_convention` | short string (Ek / Eb / E−EF as claimed + after shift) |
-| `ef_fit_eV` | Fitted Fermi edge before shift |
-| `ef_deviation_meV` | `|EF_fit| × 1000` from 0 |
-| `charging_warning` | bool / flag if claimed E−EF/Eb and \|EF_fit\| > 50 meV |
+| `ef_fit_eV` | Scalar summary OK for **cuts**; for **hv stacks** prefer mean/median of per-hv only as extra |
+| `ef_fit_per_hv` | **Required for hv→kz stacks:** 1D array of EF_fit before shift (same length as `hv`) |
+| `ef_deviation_meV` | Per-hv array and/or scalar summary (`|EF_fit| × 1000` from 0) |
+| `ef_fit_plot_path` | Optional string path to EF_fit vs hv PNG under `analysis/` |
+| `ef_qc_passed` | bool — QC + post-shift verify passed |
+| `charging_warning` | bool / flag if claimed E−EF/Eb and \|EF_fit\| > 50 meV (any/many slices) |
 | `grid_spec` | resolution / linspace description |
 | `assumptions` | Free-text echo |
 | `created_utc` | ISO timestamp |
 | `skill_ref` | e.g. `arpes` + date |
+
+For hv stacks, **scalar `ef_fit_eV` alone is not enough** — ship `ef_fit_per_hv`.
 
 ### Save / load sketch
 
@@ -350,7 +423,11 @@ is valid.
 | **EF finder before cut/Fermi → k** | PyARPES edge fit; always report EF_fit + deviation from 0 |
 | **Charging warn** | Claimed E−EF/Eb and \|EF_fit\| > 50 meV |
 | **Fermi Γ** | Package offsets / pocket_parameters / ktool / **ask** — no invent center |
-| **EF align hv stacks** | `broadcast_model(..., "hv")` + `shift_by` before kz |
+| **EF align hv stacks** | Angle-summed near-EF edge + `broadcast_model(..., "hv")` (or per-hv package loop); **ban mid-φ default** |
+| **hv EF QC** | Plot EF_fit vs hv; per-slice report; hard-stop if ≥20% zero/junk, pinned, or absurd stderr |
+| **hv shift** | Prefer `G.shift_by(centers, shift_axis="eV", shift_coords=True)` |
+| **Post-shift verify** | Summed-φ EDC at low/mid/high hv ≈0 (≲20 meV) before isoenergy/kz |
+| **hv npz meta** | Require `ef_fit_per_hv` (+ optional plot path); scalar alone insufficient |
 | **Slit offset for kz** | Prefer **lowest-hv** slice after EF align (cut-like offsets) |
 | **Photon momentum** | Soft X-ray: warn + `beamline-geometry.md` defaults + **ask**; no invent |
 | **State V₀** | Before absolute kz; ask if unknown |
