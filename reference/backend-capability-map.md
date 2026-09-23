@@ -7,8 +7,6 @@ Skill = **workflow + physics**. Backend = **capability ID → callable**.
 or explicit “use my code”).  
 **Future:** TensorSpec / others as extra columns — deferred.
 
-Canonical design: `docs/superpowers/specs/2026-09-23-backend-capability-map-design.md`.
-
 ---
 
 ## Living-list rule (hard)

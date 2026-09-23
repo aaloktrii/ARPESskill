@@ -52,7 +52,14 @@ under `reference/` into context.
 
 ## Skill layout
 
-See `SKILL.md` and `reference/`.
+What users need:
+
+- `SKILL.md` — entry + hard rules  
+- `reference/` — workflows (load, fit, k/kz, near-EF, backend map, …)  
+- `examples/` — short recipes  
+- `LICENSE` · `README.md`
+
+No planning / design-history folders in this repo.
 
 ## Citation / contact
 

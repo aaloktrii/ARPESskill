@@ -1,0 +1,7 @@
+# Local / agent process only — not part of the published skill
+.superpowers/
+docs/
+.venv-arpes/
+__pycache__/
+*.pyc
+.DS_Store
