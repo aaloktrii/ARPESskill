@@ -19,9 +19,10 @@ cost, a one-line note + continue is enough.
 
 | Step | Why tokens spike | Lighter alternative |
 |------|------------------|---------------------|
-| Catalog **many** `.h5` files in one reply | Metadata + shapes × N in chat | Script writes `analysis/*_catalog.md`; chat only summary table |
+| Catalog **many** files in one reply | Metadata + shapes × N in chat | Build `analysis/manifest.json` (+ short `manifest.md`); chat = counts by kind only (`folder-manifest.md`) |
 | Paste **full array / DataArray** into chat | Huge numeric dumps | Print shape, coords, min/max/mean; save `.nc` / plot PNG under `analysis/` |
-| Re-load whole **measurement log** repeatedly | Long CSV in context | Cache summary once; query by run number |
+| Re-load whole **measurement log** repeatedly | Long CSV in context | Cache summary once; store `log_comment` on manifest rows |
+| Re-walk folder every follow-up turn | Wastes tokens | **Recall** `analysis/manifest.json`; refresh only if mtime/hash changed |
 | **Broadcast fits** over full 2D/3D maps | Long fit reports × many curves | Fit one EDC/MDC first; then scripted broadcast → save params CSV |
 | Full **k / kz conversion** volumes + prose dump | Large grids in text | Convert in script; plot or save; chat = axes + assumptions only |
 | Attach / describe **many PNG** overviews | Image tokens add up | Few representative figures; rest on disk |
@@ -39,14 +40,17 @@ cost, a one-line note + continue is enough.
 
 1. Prefer **scripts under `analysis/`** that write reports/figures; summarize results in chat.
 2. Never paste raw intensity arrays into the conversation.
-3. Cap catalogs: default to a **sample** (e.g. 3–5 files) before offering full-folder runs.
+3. Cap catalogs: default to a **sample** (e.g. 3–5 peek loads) before offering
+   full-folder Pass B; always write **manifest** rather than pasting rows in chat.
 4. After a long tool log, reply with a **short** status — do not echo the whole log.
 5. Keep PyARPES env path in one line; do not re-paste install recipes every turn.
+6. Follow-ups: open `analysis/manifest.json` first (`folder-manifest.md`).
 
 ## Example one-liners
 
-- Full Blue folder catalog (25 files):  
-  *“Token note: cataloging all 25 files in-chat is heavy. I’ll write a catalog script + markdown under `analysis/` and only paste a short summary here — OK?”*
+- Full folder catalog:  
+  *“Token note: I’ll build `analysis/manifest.json` (listing, then peek) and only
+  paste kind counts here — OK?”*
 
 - Broadcast MDC fits across a cut:  
   *“Token note: broadcast fits produce long reports. I’ll fit one MDC here, then run the rest in a script and save `widths.csv` — OK?”*

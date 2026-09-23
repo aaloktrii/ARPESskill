@@ -86,6 +86,8 @@ volumes, etc.
   or deepest ≳5 eV below EF) → suspect core level saved as 2D image; quick
   report = detector×energy **and** angle-integrated EDC; no default valence k
   (`reference/default-overview-plots.md`).
+- **Folder first:** for multi-file folders, build/refresh `analysis/manifest.json`
+  before deep analysis; later **recall** from it (`reference/folder-manifest.md`).
 
 ## Package-first (important)
 
@@ -114,27 +116,32 @@ chat). Details: `reference/token-usage.md`.
 
 ## Workflow
 
-1. Identify artifact (file type, shape, **existing** package/project loaders).
-2. Check PyARPES + Python 3.8; if missing/wrong, ask for dedicated venv
+1. If the user points at a **folder** / many files: build or refresh
+   `analysis/manifest.json` (+ optional `manifest.md`) **first** — see
+   `reference/folder-manifest.md`. Later turns **recall** from the manifest;
+   do not re-walk the folder into chat.
+2. Identify artifact (file type, shape, **existing** package/project loaders);
+   prefer rows from the manifest when present.
+3. Check PyARPES + Python 3.8; if missing/wrong, ask for dedicated venv
    (see Stack policy / `reference/pyarpes-env.md`) before continuing.
-3. Try package load/analysis first (`reference/package-first.md`). For
+4. Try package load/analysis first (`reference/package-first.md`). For
    MAESTRO: prefer sibling **`.fits`** + `location='MAESTRO'` before MH1
    `.h5`; pick main spectrum carefully (`formats-and-axes.md`). If load
    fails or needs new code — **ask** before a custom loader.
-4. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
-5. Sanity print — shape, ranges, one mid-cut summary.
-6. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
-7. **Quick report:** stop at angle-space overviews
+5. Lock coordinates — names + units (° vs Å⁻¹, eV, hν; binding vs kinetic).
+6. Sanity print — shape, ranges, one mid-cut summary.
+7. Reduce — cut / FS / EDC / MDC (see `reference/safe-reduction.md`).
+8. **Quick report:** stop at angle-space overviews
    (`default-overview-plots.md`). **Do not** convert to k/kz here.
-8. **Analysis / user-requested momentum:** convert to k / kz
+   Update manifest `overview_paths` when PNGs are written.
+9. **Analysis / user-requested momentum:** convert to k / kz
    (`reference/k-and-kz-conversion.md`) — state energy axis; EF finder +
    report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); provisional
-   or user Γ; stated V₀ for kz; save `analysis/kspace/*.npz`.
-9. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
-10. Plot/report with labeled units; **list overview / conversion assumptions**.
-   Default overviews: `reference/default-overview-plots.md`
-   (cut → 1 dispersion; Fermi / hv–kz → trio; dims win over log for kind).
-11. Before expensive batch work — token note (`reference/token-usage.md`).
+   or user Γ; stated V₀ for kz; save `analysis/kspace/*.npz`; link
+   `product_paths` on the manifest row.
+10. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
+11. Plot/report with labeled units; **list overview / conversion assumptions**.
+12. Before expensive batch work — token note (`reference/token-usage.md`).
 
 If unsure: read the matching `reference/` file; ask the user one sharp question.
 
@@ -149,6 +156,7 @@ If unsure: read the matching `reference/` file; ask the user one sharp question.
 - `reference/token-usage.md` — when to warn about token cost
 - `reference/default-overview-plots.md` — cut / Fermi trio / hv–kz trio + assumptions
 - `reference/package-first.md` — use package APIs; ask before new code
+- `reference/folder-manifest.md` — folder inventory before analysis; recall later
 
 ## Examples
 

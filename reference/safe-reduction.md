@@ -13,6 +13,9 @@ and `reference/formats-and-axes.md` for load/inspect details.
    - State which loader was used (`arpes.io.load_data`, project loader, or
      xarray/h5py fallback).
    - If PyARPES is missing, say so and limit scope to inspect-only.
+   - **Folder scope:** if analyzing many files, ensure `analysis/manifest.json`
+     exists/refreshed first (`reference/folder-manifest.md`); pick the file
+     from the manifest when possible.
 
 2. **Print coords + units**
    - Run the sanity print from `reference/formats-and-axes.md` (shape, coord

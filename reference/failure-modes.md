@@ -37,6 +37,9 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Invent k formula or auto-Γ finder | `convert_to_kspace` + `apply_offsets` only; no PyARPES auto-Γ API |
 | Long swept “Cut” treated as valence only | Check core-as-2D heuristics; report image + angle-integrated EDC (`default-overview-plots.md`) |
 | Valence k-conversion on suspected core-as-2D | Stop / ask; user must override science kind |
+| Re-walk folder / paste full catalog every turn | Build `analysis/manifest.json`; recall later (`folder-manifest.md`) |
+| Ignore stale manifest after files change | Refresh rows when mtime/hash differs |
+| Treat log “Cut” as kind without dims/heuristics | Dims + core-as-2D rules; log → `log_comment` only |
 | Reimplement fit / k-conversion by hand | Use PyARPES APIs; ask if truly unavailable |
 
 ## Additional guidance
@@ -51,6 +54,8 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
   Γ without method. See `reference/k-and-kz-conversion.md`.
 - **k/kz:** analysis mode only; cache under `analysis/kspace/*.npz`. Quick
   report must not convert.
+- **Folder inventory:** multi-file work starts with `analysis/manifest.json`
+  (`reference/folder-manifest.md`); recall instead of re-cataloging in chat.
 - **Fits:** every reported fit must name the lineshape and any background model. See
   `reference/edc-mdc-fitting.md`.
 - **Stack policy:** v1 uses PyARPES for analysis. If PyARPES is missing, ask to
