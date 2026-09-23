@@ -1,22 +1,30 @@
 # ARPESskill
 
-General LLM agent skill for ARPES analysis via **PyARPES** (v1).
+General LLM agent skill for ARPES analysis via **PyARPES**.
 
-## What this is
+**Repo:** https://github.com/fawkesdx/ARPESskill
 
-Teaches agents to load ARPES data, lock axes/units, extract EDC/MDC,
-fit peaks (Gaussian / Lorentzian / Voigt), convert cuts/Fermi maps to
-k-space, convert photon-energy scans to kz, and (when asked) run near-EF
-cut analysis for gap/pseudogap (metal EF, resolution-broadened FD divide,
-symmetrize) — without inventing coordinates or physics assumptions.
-Default backend **PyARPES**; optional **user-map** of project functions via
-a living capability inventory when PyARPES is declined.
+## What it does
 
-## What this is not (v1)
+Teaches Cursor / Claude / other agents to reduce ARPES data **without inventing
+axes or physics**:
 
-- Not tied to TensorSpec / TensorSpec_GUI (future separate bridge)
-- Not a Python package; not interactive Qt GUI control
-- Does not ship MAESTRO data files
+| Step | Skill behavior |
+|------|----------------|
+| Load | Prefer PyARPES (`load_data` / endstations); FITS-first for MAESTRO |
+| Overview | Cut / Fermi / hv trios with stated assumptions |
+| Fit | Core then EDC/MDC (Gaussian / Lorentzian / Voigt); package models only |
+| k / kz | EF finder + QC; `convert_to_kspace`; hv EF = angle-summed edge + per-hv QC |
+| Near-EF | Metal EF, resolution-broadened FD, symmetrize (gap/pseudogap) when asked |
+| Backend | Default PyARPES; optional confirmed map to **your** project functions |
+
+## 60-second try
+
+1. Install skill (below) + PyARPES in a **Python 3.8** venv (agent will ask).
+2. Open Cursor chat in a folder with an ARPES file (or PyARPES tutorial data).
+3. Ask: *“Load this spectrum with the ARPES skill; state axes; show the default overview.”*
+
+Demo GIF / screenshots: coming soon under `examples/demo/` (load → overview → k).
 
 ## Install
 
@@ -26,40 +34,43 @@ git clone https://github.com/fawkesdx/ARPESskill.git
 mkdir -p ~/.cursor/skills
 ln -s "$(pwd)/ARPESskill" ~/.cursor/skills/arpes
 ```
-(Or copy the repo contents into `~/.cursor/skills/arpes/` so that
-`~/.cursor/skills/arpes/SKILL.md` exists.)
+(Or copy the repo so `~/.cursor/skills/arpes/SKILL.md` exists.)
 
 ### Claude Code
-Clone the repo and install into Claude Code's skills directory so that
-`SKILL.md` is discoverable (same files). If your Claude Code version
-uses `~/.claude/skills/`, symlink similarly:
 ```bash
 mkdir -p ~/.claude/skills
 ln -s /absolute/path/to/ARPESskill ~/.claude/skills/arpes
 ```
-Confirm the path for your Claude Code version if it differs.
+Confirm the skills path for your Claude Code version if it differs.
 
 ### Other LLM agents
-Point the agent at this repo, or inject `SKILL.md` plus needed files
-under `reference/` into context.
+Point the agent at this repo, or inject `SKILL.md` plus needed files under
+`reference/` into context.
 
-## Requires (for full analysis)
+## Requires (full analysis)
 
 - **Python 3.8.x** only (PyARPES: `>=3.8,<3.9`)
 - Dedicated venv (e.g. `.venv-arpes`) + `pip install arpes` inside it  
-  See skill `reference/pyarpes-env.md` — agent should ask before creating it
-- For load/inspect fallback only: `xarray`, `h5py`
+  See `reference/pyarpes-env.md` — agent asks before creating it
+- Load/inspect fallback only: `xarray`, `h5py`
+
+## What this is not
+
+- Not a replacement for PyARPES — it **drives** PyARPES (or your mapped code)
+- Not TensorSpec / Qt GUI control
+- Does not ship beamtime data files
+
+## Related tools
+
+- [PyARPES](https://arpes.readthedocs.io) / [GitHub mirror](https://github.com/chstan/arpes)
+- Beamline notes in-skill: MAESTRO, ALBA LOREA (incidence defaults); more welcome via PR
 
 ## Skill layout
 
-What users need:
-
 - `SKILL.md` — entry + hard rules  
-- `reference/` — workflows (load, fit, k/kz, near-EF, backend map, …)  
+- `reference/` — workflows  
 - `examples/` — short recipes  
 - `LICENSE` · `README.md`
-
-No planning / design-history folders in this repo.
 
 ## Citation / contact
 
