@@ -2,6 +2,10 @@
 .superpowers/
 docs/
 .venv-arpes/
+.mplconfig/
+.numba_cache/
 __pycache__/
 *.pyc
 .DS_Store
+analysis/
+*.npz

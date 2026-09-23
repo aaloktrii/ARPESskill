@@ -95,7 +95,7 @@ spectrum = example_data.photon_energy.spectrum
 
 # Energy axis notice: expect Eb / E−EF + hv (not a single Ek for all slices)
 
-# EF align across hv (required) — angle-summed near-EF; ban mid-φ default
+# EF align across hv (required) — angle-summed near-EF; do not use mid-φ as default
 edge = spectrum.sel(eV=slice(-0.15, 0.1)).sum("phi")  # adapt dim / window
 results = broadcast_model(AffineBroadenedFD, edge, "hv")
 # If broadcast_model broken: loop summed-φ EDCs + AffineBroadenedFD (not mid-φ)

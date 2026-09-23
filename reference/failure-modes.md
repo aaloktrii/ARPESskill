@@ -43,7 +43,7 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Invent k formula or auto-Γ / FS-center finder | `convert_to_kspace` + `apply_offsets` only; Fermi: ask if no package path |
 | Fermi map → k without EF finder | Same energy rules as cut (`k-and-kz-conversion.md`) |
 | hv stack → kz without per-hv EF align | Angle-summed near-EF + package fit vs hv + `shift_by` first |
-| Mid-φ / single-pixel EDC as default hv EF fit | **Banned**; sum/mean over φ (or wide window) |
+| Mid-φ / single-pixel EDC as default hv EF fit | Do not use; sum/mean over φ (or wide window) |
 | Mean-only EF report for hv stack | Report **per-hv** EF_fit + meV from 0; plot EF_fit vs hv |
 | Skip EF QC / post-shift then claim kz FS | Hard-stop on junk/pinned/stderr; verify ≈0 at low/mid/high hv |
 | hv npz with only scalar `ef_fit_eV` | Require `ef_fit_per_hv` (+ optional plot path) |

@@ -103,7 +103,7 @@ volumes, etc.
   / optional `ktool` only — else **ask**; never invent a center finder
   (`reference/k-and-kz-conversion.md`).
 - **hv → kz:** EF-align **per hv** on an **angle-integrated** near-EF edge
-  (ban mid-φ default); QC + plot EF_fit vs hv; per-slice report; post-shift
+  (do not use mid-φ as default); QC + plot EF_fit vs hv; per-slice report; post-shift
   verify ≈0; slit offset from **lowest-hv** slice; state V₀; soft X-ray →
   `reference/beamline-geometry.md` (MAESTRO 55°; ALBA LOREA 55° — ask; SLS soft
   X-ray postponed) + **ask** about photon momentum / incidence; npz must store

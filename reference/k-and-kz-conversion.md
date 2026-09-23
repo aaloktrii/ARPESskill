@@ -198,7 +198,7 @@ Mono / undulator drift can move the edge differently at each hv. Use **PyARPES
 only** ([Fermi edge corrections](https://arpes.readthedocs.io/en/latest/notebooks/fermi-edge-correction.html)).
 
 **Hard rule for hv stacks:** fit an **angle-integrated** near-EF edge, then
-broadcast on `hv`. Mid-φ / single-pixel EDC is **forbidden as the default**
+broadcast on `hv`. Mid-φ / single-pixel EDC is **not** the default
 (too noisy / biased). User may override to a stated φ window only if they ask.
 
 #### 1. Edge ROI (required)
@@ -250,7 +250,7 @@ If `broadcast_model` fails or returns unusable objects (e.g. `np.object` mess):
 - Loop **angle-summed** near-EF EDCs per hv with `AffineBroadenedFD().guess_fit`
   (still package model).
 - Same QC on the collected centers.
-- **Forbidden:** silent fallback to mid-φ-only EDCs.
+- **Do not** silently fall back to mid-φ-only EDCs.
 
 Do **not** invent a custom edge fitter. If package fit still fails → ask.
 
@@ -429,7 +429,7 @@ is valid.
 | **EF finder before cut/Fermi → k** | PyARPES edge fit; always report EF_fit + deviation from 0 |
 | **Charging warn** | Claimed E−EF/Eb and \|EF_fit\| > 50 meV |
 | **Fermi Γ** | Package offsets / pocket_parameters / ktool / **ask** — no invent center |
-| **EF align hv stacks** | Angle-summed near-EF edge + `broadcast_model(..., "hv")` (or per-hv package loop); **ban mid-φ default** |
+| **EF align hv stacks** | Angle-summed near-EF edge + `broadcast_model(..., "hv")` (or per-hv package loop); do **not** use mid-φ as default |
 | **hv EF QC** | Plot EF_fit vs hv; per-slice report; hard-stop if ≥20% zero/junk, pinned, or absurd stderr |
 | **hv shift** | Prefer `G.shift_by(centers, shift_axis="eV", shift_coords=True)` |
 | **Post-shift verify** | Summed-φ EDC at low/mid/high hv ≈0 (≲20 meV) before isoenergy/kz |
