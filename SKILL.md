@@ -74,6 +74,10 @@ volumes, etc.
   `reference/default-overview-plots.md` § Default overview assumptions.
 - **No k/kz in quick report** — overview trios stay angle-space; convert only
   in analysis / when user asks (`reference/k-and-kz-conversion.md`).
+- **State energy axis** on load (Ek / Eb / E−EF / ambiguous).
+- **Before cut → k:** PyARPES EF finder; always report EF_fit + deviation from
+  0 eV; charging warn if claimed E−EF/Eb and `|EF_fit| > 50 meV`; then shift
+  EF→0. Package `convert_to_kspace` only — no invent formulas / auto-Γ.
 - **Γ for k conversion:** provisional heuristic OK if labeled; **user offset
   always wins**; never claim Γ without method.
 - After k/kz conversion: save `analysis/kspace/*.npz` with required meta;
@@ -119,8 +123,9 @@ chat). Details: `reference/token-usage.md`.
 7. **Quick report:** stop at angle-space overviews
    (`default-overview-plots.md`). **Do not** convert to k/kz here.
 8. **Analysis / user-requested momentum:** convert to k / kz
-   (`reference/k-and-kz-conversion.md`) — EF-aligned energy, provisional or
-   user Γ, stated V₀ for kz; save `analysis/kspace/*.npz`; prefer cache reload.
+   (`reference/k-and-kz-conversion.md`) — state energy axis; EF finder +
+   report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); provisional
+   or user Γ; stated V₀ for kz; save `analysis/kspace/*.npz`.
 9. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
 10. Plot/report with labeled units; **list overview / conversion assumptions**.
    Default overviews: `reference/default-overview-plots.md`

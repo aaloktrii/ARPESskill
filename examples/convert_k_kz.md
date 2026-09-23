@@ -1,8 +1,8 @@
 # Example: Convert angle cut to k and hv scan to kz
 
 **Goal:** Analysis-mode conversion only (not quick report). Follow
-`reference/k-and-kz-conversion.md`: EF-aligned energy, provisional or user Γ,
-stated V₀ for kz, save `analysis/kspace/*.npz`.
+`reference/k-and-kz-conversion.md`: energy-axis notice, EF finder, provisional
+or user Γ, stated V₀ for kz, save `analysis/kspace/*.npz`.
 
 ## 0. Mode check
 
@@ -13,6 +13,8 @@ angle space (`default-overview-plots.md`).
 
 ```python
 from arpes.io import example_data
+from arpes.fits.utilities import broadcast_model
+from arpes.fits.fit_models import AffineBroadenedFD
 from arpes.utilities.conversion import convert_to_kspace
 from pathlib import Path
 import numpy as np
@@ -20,16 +22,25 @@ from datetime import datetime, timezone
 
 cut = example_data.cut.spectrum  # or user-loaded cut
 
-print(cut.dims, list(cut.coords))  # angles in degrees — not Å⁻¹ yet
+# --- Energy axis notice (always) ---
+# Tell user: Ek / Eb / E−EF / ambiguous from coords+attrs+range
+print(cut.dims, list(cut.coords))
 
-# Provisional Γ (label method). User-supplied offsets always override.
-# Keys must match motors present on the data.
-phi0 = 0.0  # provisional: nearest-zero / mid — replace with user value if given
+# --- EF finder (required before convert; PyARPES only) ---
+near_ef = cut.sel(eV=slice(-0.15, 0.1))  # adapt window
+results = broadcast_model(AffineBroadenedFD, near_ef, "phi")
+ef_fit = float(results.F.p("fd_center").mean())
+ef_dev_meV = abs(ef_fit) * 1000.0
+# ALWAYS report EF_fit and deviation from 0 eV
+# If claimed E−EF/Eb and ef_dev_meV > 50: warn possible charging
+cut_ef = cut.G.shift_by(-ef_fit, "eV")
+
+# --- Γ offsets (provisional or user; no auto-Γ API) ---
+phi0 = 0.0
 gamma_method = "provisional:nearest_zero"  # or "user"
-cut.S.apply_offsets({"phi": phi0})
+cut_ef.S.apply_offsets({"phi": phi0})
 
-kdata = convert_to_kspace(cut)  # or resolution= / kp=np.linspace(...)
-# Report: geometry, gamma_method, output coords, grid
+kdata = convert_to_kspace(cut_ef)
 
 stem = "example_cut"
 out = Path("analysis/kspace") / f"{stem}_k.npz"
@@ -41,18 +52,23 @@ np.savez_compressed(
     dims=np.array(kdata.dims),
     source_path=np.array("example_data.cut"),
     gamma_method=np.array(gamma_method),
-    energy_convention=np.array("EF-aligned binding-like"),
+    energy_convention=np.array("E-EF_after_shift"),
+    ef_fit_eV=np.array(ef_fit),
+    ef_deviation_meV=np.array(ef_dev_meV),
+    charging_warning=np.array(ef_dev_meV > 50.0),
     grid_spec=np.array("pyarpes_default"),
-    assumptions=np.array(f"gamma={gamma_method}; no absolute kz"),
+    assumptions=np.array(
+        f"EF_fit={ef_fit:.4f} eV ({ef_dev_meV:.1f} meV from 0); "
+        f"gamma={gamma_method}"
+    ),
     created_utc=np.array(datetime.now(timezone.utc).isoformat()),
     skill_ref=np.array("arpes"),
 )
 kdata.S.plot()
 ```
 
-**Agent narrative:** State energy convention, Γ method (provisional vs user),
-geometry, and that axes are Å⁻¹ only after conversion. Prefer reload from npz
-next time if meta still matches.
+**Agent narrative:** State energy axis kind, EF_fit + deviation from 0 (charging
+warn if >50 meV on claimed E−EF/Eb), Γ method, geometry. Å⁻¹ only after convert.
 
 ## 2. hv scan → kz (state V₀)
 
@@ -110,6 +126,8 @@ np.savez_compressed(
 | Rule | Detail |
 |------|--------|
 | Quick report | No conversion |
+| Energy axis | State Ek / Eb / E−EF on load |
+| EF before cut→k | Fit + report deviation; charging warn if >50 meV on E−EF/Eb |
 | State V₀ | Before absolute kz |
 | User Γ wins | Overrides provisional |
 | Cache | `analysis/kspace/*.npz` with meta |

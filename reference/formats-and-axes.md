@@ -54,19 +54,24 @@ State units explicitly in plots and when reporting numeric windows.
 
 ## Binding vs kinetic — never swap silently
 
-- **Binding energy** (BE): often negative below the Fermi level in PyARPES
-  conventions; EF ≈ 0 eV binding.
-- **Kinetic energy** (KE): measured electron energy; related to BE and `hv` via
-  the photoemission equation.
+Always **tell the user** which energy axis the load has:
 
-Before any cut, fit, or k conversion:
+| Label | Meaning |
+|-------|---------|
+| **Ek** | Absolute kinetic |
+| **Eb** | Binding (sign may vary) |
+| **E−EF** | EF-aligned (PyARPES: often ≤0 below EF) |
+| **ambiguous** | Ask |
 
-1. Read which convention the loaded array uses (coord name, attrs, or loader docs).
-2. State it in the analysis log.
-3. If converting BE ↔ KE, show the formula and `hv` used.
-4. **Never** relabel an axis or flip a sign without stating the change.
+Clues: coord name, attrs/units, whether `0` is in range. **Never** silently
+relabel or flip sign.
 
-If the convention is ambiguous, stop and ask one sharp question.
+Before any **k conversion** on a cut: run PyARPES **EF finder**, report
+`EF_fit` and deviation from 0 eV, shift EF→0; if claimed E−EF/Eb and
+`|EF_fit| > 50 meV`, warn **possible charging**. Details:
+`reference/k-and-kz-conversion.md`.
+
+If converting BE ↔ KE for other reasons, show the formula and `hv` used.
 
 ## MAESTRO via PyARPES
 

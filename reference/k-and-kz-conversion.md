@@ -18,27 +18,56 @@ axes as Å⁻¹ until `convert_to_kspace` has actually run.
 
 If unclear: ask one sharp question. **Do not convert silently** during quick report.
 
-## Energy convention (PyARPES-first)
+## Energy axis notice (always — load & analysis)
 
-Do **not** invent a separate absolute-kinetic-energy matrix when PyARPES data
-already has:
+On **every load**, state the energy axis kind to the user. Do **not** silently
+relabel.
 
-- EF-aligned energy coord (`eV`, typically ≤0 below EF), and
-- photon energy `hv` in attrs and/or coords.
+| Label | Meaning | Typical clues (not absolute) |
+|-------|---------|------------------------------|
+| **Ek** | Absolute kinetic (analyzer scale) | Range ≫ 0; attrs/units say kinetic |
+| **Eb** | Binding (sign conventions vary) | Attrs say binding; may be positive-down |
+| **E−EF** | EF-aligned (PyARPES default: ≤0 below EF) | `0` in range; negative below EF |
+| **ambiguous** | Cannot tell | Say so; ask one sharp question |
 
-PyARPES uses **binding-like energy with EF at 0** (docs: kinetic offset so zero
-is at Fermi). Together with geometry and `hv`, that is enough for
-`convert_to_kspace`.
+Example line:  
+`Energy axis: E−EF (claimed); range [−1.2, 0.05] eV`
+
+## EF finder before cut → k (required)
+
+Before `convert_to_kspace` on a **dispersion cut** (analysis mode):
+
+1. **Always** run a PyARPES Fermi-edge fit — even if the axis is already labeled
+   E−EF or Eb (charging / mono drift can move the edge off 0).
+2. Use **only** package tools (e.g. `AffineBroadenedFD` via `broadcast_model`
+   and/or a mid-cut EDC fit; then `G.shift_by` / documented energy correction).
+   **Do not invent** a custom edge fitter or hand-rolled \(k=\ldots\) formulas.
+3. Report **EF_fit** and **deviation from 0**:  
+   `EF_fit = X eV → |X| = … meV from 0 eV`.
+4. Shift so EF → 0, then convert.
+
+| Loaded claim | After EF fit | Tell the user |
+|--------------|--------------|---------------|
+| **Ek** | Fit + shift to EF=0 | Was kinetic; EF calibrated with PyARPES edge fit (state EF_fit + deviation). **Do not** convert as raw Ek. |
+| **E−EF** or **Eb**, \|EF_fit\| ≤ **50 meV** | Shift if needed | Print EF_fit and deviation from 0; no charging flag. |
+| **E−EF** or **Eb**, \|EF_fit\| > **50 meV** | Shift to 0 for conversion | Print EF_fit + deviation; **possible sample charging** (or bad energy cal). Warning only — not a proven diagnosis. |
+
+**Charging flag threshold:** `|EF_fit| > 50 meV` when the axis was claimed E−EF or Eb.
+Always print the deviation regardless of threshold.
+
+Do **not** invent a separate absolute-KE matrix when data already has EF-aligned
+`eV` (after this step) and `hv` in attrs/coords. PyARPES `convert_to_kspace`
+uses that spectral model.
 
 | Situation | Action |
 |-----------|--------|
-| Energy EF-aligned (0 in range or stated EF) | Proceed; state convention |
-| Binding-like but EF not calibrated | Prefer EF check / ask; may convert with stated caveat |
-| Raw analyzer kinetic only | Calibrate EF (WF/hv as needed) **before** conversion; ask if missing |
-| hv missing on hv-stack | **Stop** — cannot do absolute kz |
+| After EF→0 + `hv` present | Proceed to offsets + `convert_to_kspace` |
+| EF fit fails / no clear edge | Stop; ask user (metal EF region? insulator?) |
+| hv missing when conversion needs it | Stop; ask |
+| hv missing on hv-stack (kz) | **Stop** — cannot do absolute kz |
 
-**Work function:** for EF calibration from analyzer KE — not a usual extra
-argument to `convert_to_kspace` once EF is set.
+**Work function:** for EF calibration from analyzer KE when needed — not a usual
+extra argument to `convert_to_kspace` once EF is at 0.
 
 ## Γ / zero momentum (policy)
 
@@ -59,25 +88,41 @@ conversion — do not conflate them.
 
 ## Prerequisites
 
-Before `convert_to_kspace`:
+Before `convert_to_kspace` on a cut:
 
-1. Confirm energy convention (table above).
-2. Identify which **angles** map to in-plane momentum — read `.coords`, do not invent.
-3. Set Γ offsets (provisional → user override).
-4. State sample geometry (normal emission, manipulator settings) in the report.
-5. For kz: set or ask for **V₀** (`attrs["inner_potential"]`).
+1. **Energy axis notice** (Ek / Eb / E−EF / ambiguous).
+2. **EF finder** → report EF_fit + deviation from 0 → shift EF→0; charging
+   warning if claimed E−EF/Eb and `|EF_fit| > 50 meV`.
+3. Identify which **angles** map to in-plane momentum — read `.coords`.
+4. Set Γ offsets (provisional → user override). No auto-Γ API in PyARPES.
+5. State sample geometry in the report.
+6. For kz: set or ask for **V₀** (`attrs["inner_potential"]`).
 
 ## In-plane k — cut
 
 ```python
+from arpes.fits.utilities import broadcast_model
+from arpes.fits.fit_models import AffineBroadenedFD
 from arpes.utilities.conversion import convert_to_kspace
 
-# Provisional or user offsets (example keys — use dims present on the data)
-cut.S.apply_offsets({"phi": phi0, "psi": psi0})  # radians or degrees per PyARPES convention
-# Report: gamma_method = "provisional:nearest_zero" | "user"
+# 1) State energy axis kind to user (Ek / Eb / E−EF / ambiguous)
 
-kdata = convert_to_kspace(cut)  # or pass resolution= / kp=linspace(...)
-# State: geometry, offsets + method, output coords (Å⁻¹), grid
+# 2) EF finder (PyARPES only) — even if already labeled E−EF
+#    Adapt ROI / broadcast dim to the cut; example pattern from docs:
+near_ef = cut.sel(eV=slice(-0.15, 0.1))  # adjust window to data
+# Single EDC or broadcast along detector — use package fit models only
+results = broadcast_model(AffineBroadenedFD, near_ef, "phi")  # or mid EDC fit
+ef_fit = float(results.F.p("fd_center").mean())  # or appropriate reduction
+# ALWAYS report: EF_fit and |EF_fit| in meV from 0
+# If claimed E−EF/Eb and abs(ef_fit) > 0.05: warn possible charging
+cut_ef = cut.G.shift_by(-ef_fit, "eV")  # EF → 0; follow PyARPES shift API
+
+# 3) Provisional or user Γ offsets (no invent auto-Γ)
+cut_ef.S.apply_offsets({"phi": phi0})  # keys = dims present
+# gamma_method = "provisional:…" | "user"
+
+# 4) Convert — package only
+kdata = convert_to_kspace(cut_ef)  # or resolution= / kp=linspace(...)
 ```
 
 ## In-plane k — Fermi map
@@ -142,7 +187,10 @@ analysis/kspace/<stem>_kz.npz   # hv stack → kz (+ in-plane as present)
 | `gamma_method` | `provisional:<name>` \| `user` \| … |
 | `inner_potential` | float; omit or NaN if N/A |
 | `hv` | scalar or array |
-| `energy_convention` | short string |
+| `energy_convention` | short string (Ek / Eb / E−EF as claimed + after shift) |
+| `ef_fit_eV` | Fitted Fermi edge before shift |
+| `ef_deviation_meV` | `|EF_fit| × 1000` from 0 |
+| `charging_warning` | bool / flag if claimed E−EF/Eb and \|EF_fit\| > 50 meV |
 | `grid_spec` | resolution / linspace description |
 | `assumptions` | Free-text echo |
 | `created_utc` | ISO timestamp |
@@ -183,12 +231,15 @@ is valid.
 | Rule | Detail |
 |------|--------|
 | **No k in quick report** | Overviews stay angle-space |
+| **State energy axis** | Ek / Eb / E−EF / ambiguous on every load |
+| **EF finder before cut→k** | PyARPES edge fit; always report EF_fit + deviation from 0 |
+| **Charging warn** | Claimed E−EF/Eb and \|EF_fit\| > 50 meV |
 | **State V₀** | Before absolute kz; ask if unknown |
 | **Prefer periodicity** | Cross-check bands vs hv when possible |
 | **No fake Å⁻¹** | Until `convert_to_kspace` runs |
-| **State geometry + Γ method** | Provisional or user |
+| **State geometry + Γ method** | Provisional or user; no invent auto-Γ |
 | **User offset wins** | Overrides heuristic; update cache |
-| **No invented KE matrix** | If EF-aligned `eV` + `hv` present |
+| **No invented KE matrix / k formulas** | Package `convert_to_kspace` only |
 | **Cache after convert** | `analysis/kspace/*.npz` with required meta |
 
 ## Common mistakes
