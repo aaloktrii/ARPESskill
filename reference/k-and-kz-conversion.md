@@ -72,29 +72,46 @@ extra argument to `convert_to_kspace` once EF is at 0.
 ## Γ / zero momentum (policy)
 
 Mechanism: `data.S.apply_offsets({...})` on present angle motors (`phi`,
-`theta`, `psi`, …).
+`theta`, `psi`, …). **User-defined offset always wins.** Never claim “Γ found”
+without naming method. Overview mid-detector / mid-scan ≠ Γ for k conversion.
 
-1. **Provisional heuristic** (default for analysis reports): nearest-0° / mid
-   if 0 is in range and looks centered; or a simple FS intensity centroid /
-   symmetry hint when a 2D map allows. Apply offsets; label
-   *provisional Γ — method \<name\>*.
-2. **User-defined offset always wins.** Persist user value; report
-   *user-defined*. Recompute k if offsets change.
-3. Never claim “Γ found” without naming method (`provisional:…` | `user` |
-   literature).
+### Cuts (dispersion)
 
-Overview mid-detector / mid-scan slices are **not** the same as Γ for k
-conversion — do not conflate them.
+1. Prefer existing `S.offsets` if already set by the loader — label *loader offsets*.
+2. Else **provisional** nearest-0° / mid if 0 in range — label
+   *provisional:nearest_zero* (not a PyARPES auto-Γ API).
+3. User offset overrides; persist and recompute if changed.
+
+### Fermi maps (stricter — package only + ask)
+
+There is **no** general PyARPES `estimate_gamma_from_isoenergy`. Do **not** invent
+centroid / argmax / symmetry scripts.
+
+Order:
+
+1. **User offset** if provided → `apply_offsets`; method `user`.
+2. Else print existing **`S.offsets`** if present → method `loader_offsets`;
+   ask whether to keep or replace.
+3. Else, if the isoenergy is clearly a **single pocket**, may call
+   **`arpes.analysis.pocket.pocket_parameters`** (package only) and propose its
+   center as offsets — label *package:pocket_parameters*; **ask before applying**.
+4. Else offer interactive **`arpes.plotting.qt_ktool.ktool`** / `widgets.kspace_tool`
+   if the user wants GUI — **ask first** (skill prefers scripted path).
+5. Else **STOP and ask** for Γ / normal-emission angles (or a clickable point).
+   Do not freestyle a center finder.
+
+Any **new** center-finding code → ask A/B/C (`package-first.md`); do not write it
+silently.
 
 ## Prerequisites
 
-Before `convert_to_kspace` on a cut:
+Before `convert_to_kspace` on a **cut or Fermi map**:
 
-1. **Energy axis notice** (Ek / Eb / E−EF / ambiguous).
-2. **EF finder** → report EF_fit + deviation from 0 → shift EF→0; charging
-   warning if claimed E−EF/Eb and `|EF_fit| > 50 meV`.
+1. **Energy axis notice** (Ek / Eb / E−EF / ambiguous) — same for both.
+2. **EF finder** (PyARPES only) → report EF_fit + deviation from 0 → shift EF→0;
+   charging warning if claimed E−EF/Eb and `|EF_fit| > 50 meV`.
 3. Identify which **angles** map to in-plane momentum — read `.coords`.
-4. Set Γ offsets (provisional → user override). No auto-Γ API in PyARPES.
+4. Set Γ offsets per [Γ policy](#γ--zero-momentum-policy) (Fermi = stricter).
 5. State sample geometry in the report.
 6. For kz: set or ask for **V₀** (`attrs["inner_potential"]`).
 
@@ -130,12 +147,32 @@ kdata = convert_to_kspace(cut_ef)  # or resolution= / kp=linspace(...)
 
 ## In-plane k — Fermi map
 
-Same energy + Γ requirements. Convert the near-EF isoenergy (or stated window)
-and/or the map as the task requires. Finite energy window ≠ true FS if bands
-disperse strongly — echo that caveat.
+**Energy:** same as cut — axis notice + PyARPES EF finder + EF_fit/deviation +
+charging warn at 50 meV + shift EF→0. Do **not** skip EF because “it’s a map.”
+
+**Center / Γ:** follow [Fermi maps (stricter)](#fermi-maps-stricter--package-only--ask)
+— package offsets / optional `pocket_parameters` / optional `ktool` / **ask**.
+No invent centroid code.
+
+Convert the near-EF isoenergy (or stated window) and/or the volume as the task
+requires. Finite energy window ≠ true FS if bands disperse strongly — echo that
+caveat.
 
 ```python
-k_fs = convert_to_kspace(fs_slice)  # near-EF slice or integrated map
+from arpes.fits.utilities import broadcast_model
+from arpes.fits.fit_models import AffineBroadenedFD
+from arpes.utilities.conversion import convert_to_kspace
+# optional, only if clearly a pocket and user agrees:
+# from arpes.analysis.pocket import pocket_parameters
+
+# 1) Energy axis notice (Ek / Eb / E−EF / ambiguous)
+# 2) EF finder on a near-EF cut through the map (package only) — same as cut
+#    e.g. mid-psi or angle-summed strip → AffineBroadenedFD → shift_by
+# 3) Γ: user | S.offsets | ask about pocket_parameters | ask about ktool | STOP ask
+#    fmap.S.apply_offsets({...})  # only after user/package path chosen
+# 4) Isoenergy or .S.fermi_surface as appropriate
+k_fs = convert_to_kspace(fs_slice)  # or full fmap after EF+offsets
+# Report: energy axis, EF_fit + meV from 0, gamma_method, grid
 ```
 
 ## hv → kz
@@ -235,14 +272,15 @@ is valid.
 |------|--------|
 | **No k in quick report** | Overviews stay angle-space |
 | **State energy axis** | Ek / Eb / E−EF / ambiguous on every load |
-| **EF finder before cut→k** | PyARPES edge fit; always report EF_fit + deviation from 0 |
+| **EF finder before cut/Fermi → k** | PyARPES edge fit; always report EF_fit + deviation from 0 |
 | **Charging warn** | Claimed E−EF/Eb and \|EF_fit\| > 50 meV |
+| **Fermi Γ** | Package offsets / pocket_parameters / ktool / **ask** — no invent center |
 | **State V₀** | Before absolute kz; ask if unknown |
 | **Prefer periodicity** | Cross-check bands vs hv when possible |
 | **No fake Å⁻¹** | Until `convert_to_kspace` runs |
-| **State geometry + Γ method** | Provisional or user; no invent auto-Γ |
-| **User offset wins** | Overrides heuristic; update cache |
-| **No invented KE matrix / k formulas** | Package `convert_to_kspace` only |
+| **State geometry + Γ method** | Named method; user offset wins |
+| **User offset wins** | Overrides; update cache |
+| **No invented KE matrix / k formulas / center finders** | Package APIs only; ask before new code |
 | **Cache after convert** | `analysis/kspace/*.npz` with required meta |
 
 ## Common mistakes

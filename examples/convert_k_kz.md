@@ -70,6 +70,16 @@ kdata.S.plot()
 **Agent narrative:** State energy axis kind, EF_fit + deviation from 0 (charging
 warn if >50 meV on claimed E−EF/Eb), Γ method, geometry. Å⁻¹ only after convert.
 
+## 1b. Fermi map → in-plane k (sketch)
+
+Same **energy** path as the cut (axis notice + EF finder + shift).
+
+**Γ / center:** do **not** invent a centroid. Order: user offset → existing
+`S.offsets` (ask keep?) → optional `pocket_parameters` if clearly a pocket and
+user agrees → optional `ktool` if user wants GUI → else **ask** for offsets.
+Then `convert_to_kspace` on the near-EF isoenergy / map. Save
+`analysis/kspace/<stem>_k.npz` with `gamma_method` and EF meta.
+
 ## 2. hv scan → kz (state V₀)
 
 ```python

@@ -34,7 +34,8 @@ Common agent mistakes in ARPES analysis and the correct behavior. Cross-check ag
 | Skip energy-axis notice on load | Always state Ek / Eb / E−EF / ambiguous |
 | Convert cut to k without PyARPES EF finder | Fit edge first; report EF_fit + meV from 0; shift EF→0 |
 | Claimed E−EF/Eb but \|EF_fit\| > 50 meV, no note | Warn **possible charging**; still print deviation |
-| Invent k formula or auto-Γ finder | `convert_to_kspace` + `apply_offsets` only; no PyARPES auto-Γ API |
+| Invent k formula or auto-Γ / FS-center finder | `convert_to_kspace` + `apply_offsets` only; Fermi: ask if no package path |
+| Fermi map → k without EF finder | Same energy rules as cut (`k-and-kz-conversion.md`) |
 | Long swept “Cut” treated as valence only | Check core-as-2D heuristics; report image + angle-integrated EDC (`default-overview-plots.md`) |
 | Valence k-conversion on suspected core-as-2D | Stop / ask; user must override science kind |
 | Re-walk folder / paste full catalog every turn | Build `analysis/manifest.json`; recall later (`folder-manifest.md`) |

@@ -75,11 +75,13 @@ volumes, etc.
 - **No k/kz in quick report** — overview trios stay angle-space; convert only
   in analysis / when user asks (`reference/k-and-kz-conversion.md`).
 - **State energy axis** on load (Ek / Eb / E−EF / ambiguous).
-- **Before cut → k:** PyARPES EF finder; always report EF_fit + deviation from
-  0 eV; charging warn if claimed E−EF/Eb and `|EF_fit| > 50 meV`; then shift
-  EF→0. Package `convert_to_kspace` only — no invent formulas / auto-Γ.
-- **Γ for k conversion:** provisional heuristic OK if labeled; **user offset
-  always wins**; never claim Γ without method.
+- **Before cut or Fermi map → k:** PyARPES EF finder; always report EF_fit +
+  deviation from 0 eV; charging warn if claimed E−EF/Eb and `|EF_fit| > 50 meV`;
+  then shift EF→0. Package `convert_to_kspace` only — no invent formulas.
+- **Γ for k conversion:** user offset wins. Cuts may use labeled provisional
+  nearest-0°. **Fermi maps:** package `S.offsets` / optional `pocket_parameters`
+  / optional `ktool` only — else **ask**; never invent a center finder
+  (`reference/k-and-kz-conversion.md`).
 - After k/kz conversion: save `analysis/kspace/*.npz` with required meta;
   prefer reload from cache when meta still matches.
 - **Core-as-2D:** cut-shaped file with swept + deep/core clues (soft: span ≳10 eV
@@ -136,8 +138,8 @@ chat). Details: `reference/token-usage.md`.
    Update manifest `overview_paths` when PNGs are written.
 9. **Analysis / user-requested momentum:** convert to k / kz
    (`reference/k-and-kz-conversion.md`) — state energy axis; EF finder +
-   report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); provisional
-   or user Γ; stated V₀ for kz; save `analysis/kspace/*.npz`; link
+   report EF_fit/deviation (charging warn if >50 meV on E−EF/Eb); Γ per
+   cut vs Fermi rules; stated V₀ for kz; save `analysis/kspace/*.npz`; link
    `product_paths` on the manifest row.
 10. If line analysis — fit + optional broadcast (`reference/edc-mdc-fitting.md`).
 11. Plot/report with labeled units; **list overview / conversion assumptions**.

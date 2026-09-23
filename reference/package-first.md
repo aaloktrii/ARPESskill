@@ -19,6 +19,8 @@ a license to rewrite ARPES infrastructure in the analysis folder.
 
 - Write a new HDF5/FITS/NeXus loader instead of `arpes.io.load_data` / a plugin
 - Reimplement k-conversion, EDC/MDC extract, or peak fitting by hand
+- Invent a **Fermi-surface / Γ center finder** (centroid, argmax, custom symmetry)
+  instead of `S.apply_offsets`, user input, `pocket_parameters`, or `ktool`
 - Copy large chunks of package logic into `analysis/`
 - Bypass PyARPES because the first plugin attempt failed
 
@@ -26,8 +28,9 @@ Ask in this shape:
 
 > PyARPES / package path failed or is incomplete: [exact error / missing
 > feature]. I can (A) retry with another official entry point (`location=…`,
-> different plugin), (B) use a loader **already in your project**, or (C) write
-> a **new** custom loader under `analysis/` (not ideal). Which do you want?
+> different plugin / `pocket_parameters` / `ktool`), (B) use a loader or helper
+> **already in your project**, or (C) write a **new** custom helper under
+> `analysis/` (not ideal). Which do you want?
 
 Do **not** start (C) until the user clearly chooses it.
 
@@ -44,6 +47,7 @@ Do **not** start (C) until the user clearly chooses it.
 | Custom `maestro_*.py` loader without asking | Report plugin failure; ask A/B/C |
 | Hand-rolled Voigt fit when `arpes.fits` exists | Use package fit models |
 | DIY angle→k with ad-hoc formulas | Use `convert_to_kspace`; state assumptions |
+| DIY FS center / Γ from invent centroid code | Offsets / user / `pocket_parameters` / `ktool` / **ask** |
 | “PyARPES can’t do MH1” → immediately rewrite | Document limitation; ask before new loader |
 
 ## MAESTRO decision tree
